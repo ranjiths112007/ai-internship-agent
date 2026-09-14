@@ -8,11 +8,11 @@ class Settings(BaseSettings):
     google_api_key: str = ""
     llm_provider: str = "auto"
 
-    discovery_enabled: bool = True
+    discovery_enabled: bool = False
     discovery_interval_hours: int = 6
 
     playwright_headless: bool = True
-    application_automation_enabled: bool = True
+    application_automation_enabled: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

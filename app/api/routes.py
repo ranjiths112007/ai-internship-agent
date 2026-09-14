@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.models import JobModel
 from app.db.session import get_db
 from app.models.schemas import (
@@ -27,8 +29,22 @@ router = APIRouter()
 
 
 @router.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health(db: Session = Depends(get_db)) -> dict[str, str]:
+    db_status = "ok"
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        db_status = "error"
+
+    llm_provider = get_llm_provider()
+    llm_status = llm_provider.__class__.__name__
+
+    return {
+        "status": "ok",
+        "database": db_status,
+        "llm_provider": llm_status,
+        "scheduler": "enabled" if settings.discovery_enabled else "disabled",
+    }
 
 
 @router.get("/profile")

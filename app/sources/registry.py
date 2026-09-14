@@ -4,11 +4,13 @@ from app.sources.base import JobSource
 from app.sources.rss import RSSJobSource
 from app.sources.json_feed import JSONFeedJobSource
 from app.sources.company_careers import CuratedCompanyCareersSource
+from app.sources.jsearch import JSearchJobSource
 
 
 def get_default_sources() -> list[JobSource]:
     return [
         CuratedCompanyCareersSource(name="Curated AI Careers"),
+        JSearchJobSource(name="JSearch API (OpenWebNinja)"),
         RSSJobSource(
             name="RemoteOK AI Jobs RSS",
             url="https://remoteok.com/remote-ai-jobs.rss",

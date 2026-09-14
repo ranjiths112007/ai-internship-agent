@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./data/internships.db"
     openai_api_key: str = ""
     google_api_key: str = ""
+    openwebninja_api_key: str = ""
     llm_provider: str = "auto"
 
     discovery_enabled: bool = False

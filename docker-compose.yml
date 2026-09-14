@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  ai-internship-agent:
+    build: .
+    container_name: ai_internship_agent
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=sqlite:///./data/internships.db
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - LLM_PROVIDER=auto
+      - DISCOVERY_ENABLED=true
+      - DISCOVERY_INTERVAL_HOURS=6
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

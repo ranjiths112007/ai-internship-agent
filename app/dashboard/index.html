@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Internship Agent — Executive Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0d14;
+      --bg-surface: #121824;
+      --bg-glass: rgba(18, 24, 36, 0.75);
+      --bg-card: rgba(26, 34, 52, 0.6);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(56, 189, 248, 0.3);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --accent: #818cf8;
+      --accent-purple: #c084fc;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(192, 132, 252, 0.06) 0%, transparent 40%);
+    }
+
+    header {
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-group { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-badge {
+      background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+      color: #000;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+
+    .header-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+      color: #fff;
+      border: none;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-hover);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.25rem;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-hover);
+    }
+    .stat-label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; }
+    .stat-value { font-size: 2rem; font-weight: 800; color: #fff; margin-top: 0.4rem; }
+    .stat-sub { font-size: 0.75rem; color: var(--success); margin-top: 0.2rem; }
+
+    /* Filters Bar */
+    .filters-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .filter-group { display: flex; align-items: center; gap: 0.5rem; }
+    .filter-group label { font-size: 0.82rem; color: var(--text-muted); font-weight: 500; }
+    .filter-select, .filter-input {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.45rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .filter-select:focus, .filter-input:focus { border-color: var(--primary); }
+
+    /* Tabs */
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* Jobs Table & Cards */
+    .jobs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .job-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .job-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .job-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+    .job-title { font-size: 1.05rem; font-weight: 700; color: #fff; line-height: 1.3; }
+    .job-company { font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-top: 0.2rem; }
+
+    .score-badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.3rem 0.6rem;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      text-align: center;
+      min-width: 52px;
+    }
+    .score-badge.high { background: rgba(52, 211, 153, 0.15); color: var(--success); border-color: rgba(52, 211, 153, 0.3); }
+    .score-badge.mid { background: rgba(251, 191, 36, 0.15); color: var(--warning); border-color: rgba(251, 191, 36, 0.3); }
+
+    .job-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.75rem 0; }
+    .tag {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .tag-remote { background: rgba(192, 132, 252, 0.15); color: var(--accent-purple); }
+
+    .job-stipend { font-size: 0.85rem; color: var(--success); font-weight: 600; margin-bottom: 0.75rem; }
+
+    .job-actions { display: flex; gap: 0.5rem; margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border-color); }
+    .job-actions .btn { flex: 1; justify-content: center; font-size: 0.78rem; padding: 0.4rem; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-content {
+      background: #121824;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      max-width: 750px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2rem;
+      position: relative;
+    }
+    .close-modal {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    .modal-section { margin-bottom: 1.5rem; }
+    .modal-section h3 { font-size: 1rem; color: var(--primary); margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3rem; }
+
+    .qa-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .qa-q { font-weight: 700; color: #fff; margin-bottom: 0.4rem; }
+    .qa-a { font-size: 0.88rem; color: var(--text-main); line-height: 1.5; white-space: pre-line; }
+
+    /* Notification banner */
+    #statusBanner {
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-size: 0.88rem;
+      display: none;
+    }
+    .banner-info { background: rgba(56, 189, 248, 0.15); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3); }
+    .banner-warning { background: rgba(251, 191, 36, 0.15); color: var(--warning); border: 1px solid rgba(251, 191, 36, 0.3); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-group">
+      <span class="logo-badge">AI AGENT</span>
+      <h1>Internship Discovery & Application OS</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="loadJobs()">↻ Refresh</button>
+      <button class="btn btn-primary" onclick="triggerDiscovery()">⚡ Run Job Discovery</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <div id="statusBanner"></div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Discovered Jobs</div>
+        <div class="stat-value" id="statDiscovered">0</div>
+        <div class="stat-sub">Live pipeline</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">High-Fit Jobs (Score ≥ 70)</div>
+        <div class="stat-value" id="statHighFit">0</div>
+        <div class="stat-sub" style="color:var(--primary)">Target matches</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Applications</div>
+        <div class="stat-value" id="statApplications">0</div>
+        <div class="stat-sub" style="color:var(--accent-purple)">Tracked</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Interviews / Offers</div>
+        <div class="stat-value" id="statInterviews">0</div>
+        <div class="stat-sub" style="color:var(--success)">Conversion pipeline</div>
+      </div>
+    </div>
+
+    <!-- Tabs Nav -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('jobs')">🎯 Discovered Pipeline</button>
+      <button class="tab-btn" onclick="switchTab('applications')">📋 Application Tracker</button>
+      <button class="tab-btn" onclick="switchTab('profile')">👤 Candidate Profile</button>
+    </div>
+
+    <!-- JOBS TAB -->
+    <div id="tabJobs">
+      <!-- Filters -->
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label>Min Score:</label>
+          <select class="filter-select" id="filterMinScore" onchange="loadJobs()">
+            <option value="0">All (0+)</option>
+            <option value="50">Relevant (50+)</option>
+            <option value="70" selected>High Fit (70+)</option>
+            <option value="85">Top Match (85+)</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Location / Remote:</label>
+          <select class="filter-select" id="filterRemote" onchange="loadJobs()">
+            <option value="all">All Locations</option>
+            <option value="remote">Remote Only</option>
+            <option value="international">International Remote Lane</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Search Keyword:</label>
+          <input type="text" class="filter-input" id="filterSearch" placeholder="Filter title or skill..." oninput="renderJobs()" />
+        </div>
+      </div>
+
+      <!-- Jobs Grid -->
+      <div class="jobs-grid" id="jobsContainer">
+        <div style="color:var(--text-muted)">Loading jobs...</div>
+      </div>
+    </div>
+
+    <!-- APPLICATIONS TAB -->
+    <div id="tabApplications" style="display:none;">
+      <div class="jobs-grid" id="applicationsContainer">
+        <div style="color:var(--text-muted)">Loading tracked applications...</div>
+      </div>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div id="tabProfile" style="display:none;">
+      <div class="stat-card" style="max-width:800px;">
+        <h2 style="font-size:1.2rem; color:var(--primary); margin-bottom:1rem;" id="profName">Loading...</h2>
+        <div id="profDetails" style="font-size:0.9rem; line-height:1.6;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Job Detail / Answer Generator Modal -->
+  <div class="modal-overlay" id="jobModal">
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeModal('jobModal')">&times;</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    let allJobs = [];
+    let currentTab = 'jobs';
+
+    function showBanner(msg, type = 'info') {
+      const b = document.getElementById('statusBanner');
+      b.className = `banner-${type}`;
+      b.innerText = msg;
+      b.style.display = 'block';
+      setTimeout(() => { b.style.display = 'none'; }, 6000);
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('tabJobs').style.display = tab === 'jobs' ? 'block' : 'none';
+      document.getElementById('tabApplications').style.display = tab === 'applications' ? 'block' : 'none';
+      document.getElementById('tabProfile').style.display = tab === 'profile' ? 'block' : 'none';
+
+      if (tab === 'jobs') loadJobs();
+      if (tab === 'applications') loadApplications();
+      if (tab === 'profile') loadProfileData();
+    }
+
+    async function loadJobs() {
+      const minScore = document.getElementById('filterMinScore').value;
+      const remoteFilter = document.getElementById('filterRemote').value;
+      
+      let url = `/api/jobs?min_score=${minScore}&limit=100`;
+      if (remoteFilter === 'remote') url += '&remote_only=true';
+      if (remoteFilter === 'international') url += '&international_only=true';
+
+      try {
+        const resp = await fetch(url);
+        allJobs = await resp.json();
+
+        // Update stats
+        document.getElementById('statDiscovered').innerText = allJobs.length;
+        document.getElementById('statHighFit').innerText = allJobs.filter(j => j.score_total >= 70).length;
+
+        renderJobs();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderJobs() {
+      const search = document.getElementById('filterSearch').value.toLowerCase();
+      const container = document.getElementById('jobsContainer');
+      
+      const filtered = allJobs.filter(j => 
+        j.title.toLowerCase().includes(search) || 
+        j.company.toLowerCase().includes(search) ||
+        (j.skills && j.skills.some(s => s.toLowerCase().includes(search)))
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); grid-column:1/-1;">No matching jobs found. Try adjusting filters or running discovery.</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(j => {
+        const badgeClass = j.score_total >= 80 ? 'high' : (j.score_total >= 60 ? 'mid' : '');
+        const stipendText = j.stipend_monthly_inr ? `INR ${j.stipend_monthly_inr.toLocaleString()}/mo` : (j.salary_text || 'Undisclosed Stipend');
+
+        return `
+          <div class="job-card">
+            <div class="job-header">
+              <div>
+                <div class="job-title">${j.title}</div>
+                <div class="job-company">${j.company}</div>
+              </div>
+              <div class="score-badge ${badgeClass}">${Math.round(j.score_total)}</div>
+            </div>
+
+            <div class="job-stipend">💰 ${stipendText}</div>
+
+            <div class="job-tags">
+              <span class="tag">📍 ${j.location || 'India'}</span>
+              <span class="tag tag-remote">🌐 ${j.work_mode}</span>
+              <span class="tag">🏷️ ${j.source}</span>
+            </div>
+
+            <div class="job-actions">
+              <button class="btn btn-secondary" onclick="viewJobDetail('${j.id}')">🔍 Details</button>
+              <button class="btn btn-primary" onclick="trackJob('${j.id}')">📌 Track</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function triggerDiscovery() {
+      showBanner('⚡ Running Job Discovery across registered sources...', 'info');
+      try {
+        const resp = await fetch('/api/discovery/run', { method: 'POST' });
+        const res = await resp.json();
+        showBanner(`Discovery complete! Checked ${res.sources_checked} sources, found ${res.new_jobs} new jobs (${res.high_fit_jobs} high-fit).`, 'info');
+        loadJobs();
+      } catch (err) {
+        showBanner('Error running discovery.', 'warning');
+      }
+    }
+
+    async function viewJobDetail(id) {
+      const resp = await fetch(`/api/jobs/${id}`);
+      const j = await resp.json();
+      const modal = document.getElementById('jobModal');
+      const body = document.getElementById('modalBody');
+
+      const bd = j.score_breakdown || {};
+      const reasons = (bd.reasons || []).map(r => `<li style="color:var(--success)">✓ ${r}</li>`).join('');
+      const flags = (bd.flags || []).map(f => `<li style="color:var(--warning)">⚠️ ${f}</li>`).join('');
+
+      body.innerHTML = `
+        <h2 style="color:#fff; font-size:1.3rem; margin-bottom:0.2rem;">${j.title}</h2>
+        <div style="color:var(--primary); font-weight:600; margin-bottom:1rem;">${j.company} — Match Score: ${j.score_total}/100</div>
+
+        <div class="modal-section">
+          <h3>Score Breakdown & Explainable Analysis</h3>
+          <ul style="list-style:none; font-size:0.88rem; line-height:1.6;">
+            ${reasons}
+            ${flags}
+          </ul>
+        </div>
+
+        <div class="modal-section">
+          <h3>Job Description</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted); white-space:pre-line;">${j.description || 'No description text available.'}</p>
+        </div>
+
+        <div class="modal-section" style="display:flex; gap:0.5rem;">
+          <button class="btn btn-primary" onclick="generateAnswersForJob('${j.id}', '${j.title.replace(/'/g, "\\'")}', '${j.company.replace(/'/g, "\\'")}')">💡 Generate Tailored Answers</button>
+          <button class="btn btn-secondary" onclick="prepareBrowserForJob('${j.application_url}')">🌐 Browser Assist Prep</button>
+        </div>
+        <div id="answersContainer"></div>
+      `;
+
+      modal.style.display = 'flex';
+    }
+
+    async function generateAnswersForJob(id, title, company) {
+      const container = document.getElementById('answersContainer');
+      container.innerHTML = '<div style="color:var(--primary); font-size:0.85rem; margin-top:1rem;">Generating candidate-grounded answers...</div>';
+
+      try {
+        const resp = await fetch('/api/applications/questions/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            job_id: id,
+            job_title: title,
+            company: company,
+            questions: [
+              "Why do you want to join us as an AI Intern?",
+              "Tell us about an AI/LLM technical project you built.",
+              "What are your stipend expectations?",
+              "What is your location availability?"
+            ]
+          })
+        });
+        const data = await resp.json();
+
+        container.innerHTML = `
+          <div class="modal-section" style="margin-top:1.5rem;">
+            <h3>Tailored Application Answers</h3>
+            ${data.answers.map(a => `
+              <div class="qa-box">
+                <div class="qa-q">Q: ${a.question}</div>
+                <div class="qa-a">${a.answer}</div>
+                <div style="font-size:0.75rem; color:var(--text-dim); margin-top:0.4rem;">Grounded Rationale: ${a.rationale}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = '<div style="color:var(--danger)">Error generating answers.</div>';
+      }
+    }
+
+    async function prepareBrowserForJob(url) {
+      if (!url) {
+        alert("No application URL available for this job.");
+        return;
+      }
+      showBanner("Inspecting application form for safety & pre-filling...", "info");
+      try {
+        const resp = await fetch('/api/browser/prepare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ job_url: url })
+        });
+        const res = await resp.json();
+        if (res.status === "MANUAL_ACTION_REQUIRED") {
+          alert(`⚠️ ${res.message}`);
+        } else {
+          alert(`✅ ${res.message}\nDetected fields: ${res.detected_fields.join(', ')}`);
+        }
+      } catch (err) {
+        alert("Error invoking browser assist.");
+      }
+    }
+
+    async function trackJob(id) {
+      try {
+        await fetch('/api/applications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ job_id: id, status: 'saved' })
+        });
+        showBanner('Job saved to application tracker!', 'info');
+        loadApplications();
+      } catch (err) {
+        showBanner('Error saving job to tracker.', 'warning');
+      }
+    }
+
+    async function loadApplications() {
+      try {
+        const resp = await fetch('/api/applications');
+        const apps = await resp.json();
+        document.getElementById('statApplications').innerText = apps.length;
+        document.getElementById('statInterviews').innerText = apps.filter(a => a.status === 'interview' || a.status === 'offer').length;
+
+        const container = document.getElementById('applicationsContainer');
+        if (apps.length === 0) {
+          container.innerHTML = '<div style="color:var(--text-muted); grid-column:1/-1;">No tracked applications yet. Click "Track" on any job in the pipeline.</div>';
+          return;
+        }
+
+        container.innerHTML = apps.map(a => `
+          <div class="job-card">
+            <div class="job-header">
+              <div>
+                <div class="job-title">${a.job ? a.job.title : 'Application'}</div>
+                <div class="job-company">${a.job ? a.job.company : ''}</div>
+              </div>
+              <span class="tag" style="background:rgba(56,189,248,0.2); color:var(--primary); text-transform:uppercase;">${a.status}</span>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">Created: ${new Date(a.created_at).toLocaleDateString()}</div>
+            <div class="job-actions">
+              <select class="filter-select" style="font-size:0.75rem;" onchange="updateAppStatus('${a.id}', this.value)">
+                <option value="saved" ${a.status==='saved'?'selected':''}>Saved</option>
+                <option value="preparing" ${a.status==='preparing'?'selected':''}>Preparing</option>
+                <option value="ready_to_apply" ${a.status==='ready_to_apply'?'selected':''}>Ready to Apply</option>
+                <option value="applied" ${a.status==='applied'?'selected':''}>Applied</option>
+                <option value="assessment" ${a.status==='assessment'?'selected':''}>Assessment</option>
+                <option value="interview" ${a.status==='interview'?'selected':''}>Interview</option>
+                <option value="offer" ${a.status==='offer'?'selected':''}>Offer</option>
+                <option value="rejected" ${a.status==='rejected'?'selected':''}>Rejected</option>
+              </select>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function updateAppStatus(id, newStatus) {
+      await fetch(`/api/applications/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      showBanner(`Status updated to ${newStatus}`, 'info');
+      loadApplications();
+    }
+
+    async function loadProfileData() {
+      const resp = await fetch('/api/profile');
+      const p = await resp.json();
+      const c = p.candidate || {};
+      document.getElementById('profName').innerText = `${c.name} — ${c.education}`;
+      document.getElementById('profDetails').innerHTML = `
+        <p><strong>Graduation Year:</strong> ${c.graduation_year} | <strong>CGPA:</strong> ${c.cgpa}</p>
+        <p><strong>Current City:</strong> ${c.current_city}</p>
+        <p><strong>Minimum Stipend Target:</strong> INR ${p.minimum_monthly_stipend_inr?.toLocaleString()}/month</p>
+        <p><strong>Locations:</strong> ${p.locations?.join(', ')}</p>
+        <p><strong>International Remote Lane:</strong> ${p.international_remote ? 'Enabled ✅' : 'Disabled'}</p>
+        <div style="margin-top:1rem;"><strong>Skills (${p.skills?.length}):</strong></div>
+        <div class="job-tags">${(p.skills||[]).map(s => `<span class="tag">${s}</span>`).join('')}</div>
+      `;
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // Initial Load
+    loadJobs();
+  </script>
+</body>
+</html>

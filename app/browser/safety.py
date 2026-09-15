@@ -1,58 +1,69 @@
 from __future__ import annotations
 
-import re
 from typing import Tuple
 
 
+CAPTCHA_SIGNALS = (
+    "g-recaptcha", "hcaptcha", "cf-turnstile", "cf-challenge", "captcha",
+    "robotcheck", "security check", "verify you are human", "cloudflare-static",
+    "ddos protection", "checking your browser", "enable javascript and cookies",
+)
+AUTH_SIGNALS = (
+    "one-time password", "enter code sent to", "enter otp", "2fa",
+    "two-factor authentication", "sms verification", "sign in to apply",
+    "log in to apply", "login to apply", "create an account to apply",
+)
+ASSESSMENT_SIGNALS = (
+    "hackerrank", "codility", "testgorilla", "pymetric", "coding challenge",
+    "technical assessment", "online assessment", "personality test", "take-home test",
+)
+SENSITIVE_SIGNALS = (
+    "credit card", "debit card", "passport number", "social security number",
+    "national id", "national identification", "pay application fee", "bank account number",
+)
+
+
+def _manual(reason: str, instruction: str) -> Tuple[bool, str, str]:
+    return False, reason, f"MANUAL_ACTION_REQUIRED: {instruction}"
+
+
 def inspect_page_safety(html_content: str, url: str = "") -> Tuple[bool, str, str]:
+    """Classify a page before any automated application interaction.
+
+    This function is deliberately conservative. A positive result means only that
+    no known stop condition was detected; it never authorizes final submission.
     """
-    Inspects page HTML and URL for safety triggers.
-    Returns (is_safe, reason, manual_action_instruction)
-    """
-    html_lower = html_content.lower()
+    html_lower = (html_content or "").lower()
+    url_lower = (url or "").lower()
 
-    # 1. CAPTCHA & Bot Protection
-    captcha_signals = [
-        "g-recaptcha", "hcaptcha", "cf-turnstile", "cf-challenge",
-        "captcha", "robotcheck", "security check", "verify you are human",
-        "cloudflare-static", "ddos protection"
-    ]
-    for sig in captcha_signals:
-        if sig in html_lower:
-            return (
-                False,
-                f"CAPTCHA / Bot Protection detected ({sig}).",
-                "MANUAL_ACTION_REQUIRED: Please open the application link directly in your browser and complete the security CAPTCHA verification."
+    for signal in CAPTCHA_SIGNALS:
+        if signal in html_lower or signal in url_lower:
+            return _manual(
+                f"CAPTCHA / Bot Protection detected ({signal}).",
+                "Complete the security challenge manually in your browser, then continue outside automation.",
             )
 
-    # 2. OTP & 2FA Verification
-    otp_signals = ["one-time password", "enter code sent to", "enter otp", "2fa", "two-factor authentication", "sms verification"]
-    for sig in otp_signals:
-        if sig in html_lower:
-            return (
-                False,
-                f"Authentication / OTP challenge detected ({sig}).",
-                "MANUAL_ACTION_REQUIRED: Please complete the 2FA / OTP phone verification in your browser."
+    for signal in AUTH_SIGNALS:
+        if signal in html_lower or signal in url_lower:
+            return _manual(
+                f"Authentication / verification challenge detected ({signal}).",
+                "Complete login, OTP, or account verification manually.",
             )
 
-    # 3. Assessment & Coding Test
-    assessment_signals = ["hackerrank", "codility", "testgorilla", "pymetric", "assess", "coding challenge", "personality test"]
-    for sig in assessment_signals:
-        if sig in html_lower or any(sig in url.lower() for sig in assessment_signals):
-            return (
-                False,
-                f"Online assessment or test detected ({sig}).",
-                "MANUAL_ACTION_REQUIRED: Please complete the technical/personality assessment directly on the portal."
+    for signal in ASSESSMENT_SIGNALS:
+        if signal in html_lower or signal in url_lower:
+            return _manual(
+                f"Online assessment or test detected ({signal}).",
+                "Complete the assessment manually. The agent will not automate tests or evaluations.",
             )
 
-    # 4. Payment or Government ID
-    sensitive_signals = ["credit card", "passport number", "social security number", "ssn", "national id", "pay application fee"]
-    for sig in sensitive_signals:
-        if sig in html_lower:
-            return (
-                False,
-                f"Sensitive personal information / Payment field detected ({sig}).",
-                "MANUAL_ACTION_REQUIRED: Please enter sensitive ID or payment details manually."
+    for signal in SENSITIVE_SIGNALS:
+        if signal in html_lower:
+            return _manual(
+                f"Sensitive personal or payment field detected ({signal}).",
+                "Enter sensitive information manually and do not expose it to the agent.",
             )
 
-    return (True, "Page is safe for automated form field pre-filling.", "")
+    # Explicitly stop on final-submit language. Preparation may be safe, but the
+    # agent must never interpret a normal submit button as permission to submit.
+    return True, "No automated-stop condition detected; page may be inspected for safe form preparation.", ""

@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.browser.application_runner import prepare_application_workflow, submit_application_workflow
@@ -36,7 +37,7 @@ def _json_list(value: Optional[str]) -> list:
     try:
         parsed = json.loads(value)
         return parsed if isinstance(parsed, list) else []
-    except (TypeError, json.JSONDecodeError):
+    except (TypeError, ValueError, json.JSONDecodeError):
         return []
 
 
@@ -46,7 +47,7 @@ def _json_dict(value: Optional[str]) -> dict:
     try:
         parsed = json.loads(value)
         return parsed if isinstance(parsed, dict) else {}
-    except (TypeError, json.JSONDecodeError):
+    except (TypeError, ValueError, json.JSONDecodeError):
         return {}
 
 
@@ -57,7 +58,6 @@ def health(db: Session = Depends(get_db)) -> dict[str, str]:
         db.execute(text("SELECT 1"))
     except Exception:
         database = "error"
-
     llm_provider = get_llm_provider()
     return {
         "status": "ok" if database == "ok" else "degraded",
@@ -86,13 +86,16 @@ def discovery_urls() -> list[dict[str, str]]:
 
 @router.post("/discovery/run", response_model=DiscoveryRunResult)
 def run_discovery(db: Session = Depends(get_db)) -> DiscoveryRunResult:
-    return run_discovery_pipeline(db)
+    try:
+        return run_discovery_pipeline(db)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Discovery pipeline failed: {exc}") from exc
 
 
 @router.get("/jobs")
 def get_jobs(
     min_score: float = Query(0.0, ge=0.0, le=100.0),
-    location: Optional[str] = None,
+    location: Optional[str] = Query(None, max_length=255),
     remote_only: bool = False,
     international_only: bool = False,
     limit: int = Query(50, ge=1, le=200),
@@ -105,29 +108,17 @@ def get_jobs(
         query = query.filter(JobModel.location_category == "international_remote")
     if location:
         query = query.filter(JobModel.location.ilike(f"%{location}%"))
-
     jobs_models = query.order_by(JobModel.score_total.desc(), JobModel.created_at.desc()).limit(limit).all()
     return [
         {
-            "id": j.id,
-            "external_id": j.external_id,
-            "title": j.title,
-            "company": j.company,
-            "description": j.description,
-            "location": j.location,
-            "country": j.country,
-            "work_mode": j.work_mode,
-            "remote_category": j.remote_category,
-            "location_category": j.location_category,
-            "stipend_monthly_inr": j.stipend_monthly_inr,
-            "salary_text": j.salary_text,
-            "currency": j.currency,
-            "source": j.source,
-            "application_url": j.application_url,
-            "skills": _json_list(j.skills_json),
-            "perks": _json_list(j.perks_json),
-            "posted_date": j.posted_date,
-            "score_total": j.score_total,
+            "id": j.id, "external_id": j.external_id, "title": j.title,
+            "company": j.company, "description": j.description, "location": j.location,
+            "country": j.country, "work_mode": j.work_mode, "remote_category": j.remote_category,
+            "location_category": j.location_category, "stipend_monthly_inr": j.stipend_monthly_inr,
+            "salary_text": j.salary_text, "currency": j.currency, "source": j.source,
+            "application_url": j.application_url, "skills": _json_list(j.skills_json),
+            "perks": _json_list(j.perks_json), "posted_date": j.posted_date,
+            "deadline": j.deadline, "score_total": j.score_total,
             "score_breakdown": _json_dict(j.score_breakdown_json),
         }
         for j in jobs_models
@@ -138,43 +129,30 @@ def get_jobs(
 def create_job(job: Job, db: Session = Depends(get_db)):
     normalized = normalize_job(job)
     normalized.dedup_hash = compute_dedup_hash(normalized)
-
     existing = db.query(JobModel).filter(JobModel.dedup_hash == normalized.dedup_hash).first()
     if existing:
         return {"id": existing.id, "title": existing.title, "score_total": existing.score_total, "created": False}
 
     score_breakdown = score_job(normalized)
     db_job = JobModel(
-        external_id=normalized.external_id,
-        source=normalized.source,
-        title=normalized.title,
-        normalized_title=normalized.normalized_title,
-        company=normalized.company,
-        description=normalized.description,
-        location=normalized.location,
-        country=normalized.country,
-        work_mode=normalized.work_mode,
-        remote_category=normalized.remote_category,
-        location_category=normalized.location_category,
-        employment_type=normalized.employment_type,
-        stipend_monthly_inr=normalized.stipend_monthly_inr,
-        salary_text=normalized.salary_text,
-        currency=normalized.currency,
-        application_url=normalized.application_url,
-        source_url=normalized.source_url,
-        skills_json=json.dumps(normalized.skills),
-        perks_json=json.dumps(normalized.perks),
-        posted_date=normalized.posted_date,
-        dedup_hash=normalized.dedup_hash,
-        score_total=score_breakdown.total,
-        score_breakdown_json=json.dumps(score_breakdown.model_dump()),
+        external_id=normalized.external_id, source=normalized.source, title=normalized.title,
+        normalized_title=normalized.normalized_title, company=normalized.company,
+        description=normalized.description, location=normalized.location, country=normalized.country,
+        work_mode=normalized.work_mode, remote_category=normalized.remote_category,
+        location_category=normalized.location_category, employment_type=normalized.employment_type,
+        stipend_monthly_inr=normalized.stipend_monthly_inr, salary_text=normalized.salary_text,
+        currency=normalized.currency, application_url=normalized.application_url,
+        source_url=normalized.source_url, skills_json=json.dumps(normalized.skills),
+        perks_json=json.dumps(normalized.perks), posted_date=normalized.posted_date,
+        deadline=normalized.deadline, dedup_hash=normalized.dedup_hash,
+        score_total=score_breakdown.total, score_breakdown_json=json.dumps(score_breakdown.model_dump()),
     )
     db.add(db_job)
     try:
         db.commit()
-    except Exception:
+    except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=409, detail="Job could not be created; it may already exist.")
+        raise HTTPException(status_code=409, detail="Job already exists or violates a database constraint.") from exc
     db.refresh(db_job)
     return {"id": db_job.id, "title": db_job.title, "score_total": db_job.score_total, "created": True}
 
@@ -184,27 +162,16 @@ def get_job_detail(id: str, db: Session = Depends(get_db)):
     job_model = db.query(JobModel).filter(JobModel.id == id).first()
     if not job_model:
         raise HTTPException(status_code=404, detail="Job not found")
-
     return {
-        "id": job_model.id,
-        "external_id": job_model.external_id,
-        "title": job_model.title,
-        "company": job_model.company,
-        "description": job_model.description,
-        "location": job_model.location,
-        "country": job_model.country,
-        "work_mode": job_model.work_mode,
-        "remote_category": job_model.remote_category,
-        "location_category": job_model.location_category,
-        "stipend_monthly_inr": job_model.stipend_monthly_inr,
-        "salary_text": job_model.salary_text,
-        "currency": job_model.currency,
-        "source": job_model.source,
-        "application_url": job_model.application_url,
-        "skills": _json_list(job_model.skills_json),
-        "perks": _json_list(job_model.perks_json),
-        "posted_date": job_model.posted_date,
-        "score_total": job_model.score_total,
+        "id": job_model.id, "external_id": job_model.external_id, "title": job_model.title,
+        "company": job_model.company, "description": job_model.description, "location": job_model.location,
+        "country": job_model.country, "work_mode": job_model.work_mode,
+        "remote_category": job_model.remote_category, "location_category": job_model.location_category,
+        "stipend_monthly_inr": job_model.stipend_monthly_inr, "salary_text": job_model.salary_text,
+        "currency": job_model.currency, "source": job_model.source,
+        "application_url": job_model.application_url, "skills": _json_list(job_model.skills_json),
+        "perks": _json_list(job_model.perks_json), "posted_date": job_model.posted_date,
+        "deadline": job_model.deadline, "score_total": job_model.score_total,
         "score_breakdown": _json_dict(job_model.score_breakdown_json),
         "llm_analysis": _json_dict(job_model.llm_analysis_json),
     }
@@ -220,12 +187,15 @@ def create_app(data: ApplicationCreate, db: Session = Depends(get_db)):
     try:
         return create_application(db, data)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/applications", response_model=list[ApplicationResponse])
 def get_apps(status: Optional[str] = None, db: Session = Depends(get_db)):
-    return list_applications(db, status=status)
+    try:
+        return list_applications(db, status=status)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/applications/{id}", response_model=ApplicationResponse)
@@ -238,7 +208,10 @@ def get_app_detail(id: str, db: Session = Depends(get_db)):
 
 @router.patch("/applications/{id}", response_model=ApplicationResponse)
 def update_app_route(id: str, data: ApplicationUpdate, db: Session = Depends(get_db)):
-    result = update_application(db, id, data)
+    try:
+        result = update_application(db, id, data)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not result:
         raise HTTPException(status_code=404, detail="Application not found")
     return result

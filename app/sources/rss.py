@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import logging
 import xml.etree.ElementTree as ET
+
 import httpx
+
 from app.models.schemas import Job
 from app.sources.base import JobSource
 
@@ -10,75 +12,80 @@ logger = logging.getLogger(__name__)
 
 
 class RSSJobSource(JobSource):
-    def __init__(self, name: str, url: str, default_country: str = "India"):
+    """Read a public RSS/Atom feed without inventing missing job data."""
+
+    def __init__(self, name: str, url: str, default_country: str = "Worldwide", timeout: float = 15.0):
         self.name = name
         self.url = url
         self.default_country = default_country
+        self.timeout = timeout
+
+    @staticmethod
+    def _text(element: ET.Element | None) -> str:
+        return "" if element is None or element.text is None else element.text.strip()
 
     def fetch_jobs(self) -> list[Job]:
-        jobs: list[Job] = []
         try:
-            headers = {"User-Agent": "AI-Internship-Agent/1.0"}
-            response = httpx.get(self.url, headers=headers, timeout=10.0, follow_redirects=True)
-            if response.status_code != 200:
-                logger.warning(f"RSS source {self.name} returned status code {response.status_code}")
-                return jobs
-
+            response = httpx.get(
+                self.url,
+                headers={"User-Agent": "AI-Internship-Agent/1.0", "Accept": "application/rss+xml, application/atom+xml, application/xml"},
+                timeout=self.timeout,
+                follow_redirects=True,
+            )
+            response.raise_for_status()
             root = ET.fromstring(response.text)
-            items = root.findall(".//item")
-            if not items:
-                items = root.findall(".//{http://www.w3.org/2005/Atom}entry")
+        except (httpx.HTTPError, ET.ParseError) as exc:
+            logger.warning("RSS source %s failed: %s", self.name, exc)
+            return []
 
-            for item in items:
-                title_elem = item.find("title")
-                if title_elem is None:
-                    title_elem = item.find("{http://www.w3.org/2005/Atom}title")
+        atom = "{http://www.w3.org/2005/Atom}"
+        items = root.findall(".//item") or root.findall(f".//{atom}entry")
+        jobs: list[Job] = []
 
-                link_elem = item.find("link")
-                if link_elem is None:
-                    link_elem = item.find("{http://www.w3.org/2005/Atom}link")
+        for item in items:
+            title_el = item.find("title") or item.find(f"{atom}title")
+            link_el = item.find("link") or item.find(f"{atom}link")
+            desc_el = item.find("description") or item.find(f"{atom}content") or item.find(f"{atom}summary")
+            pub_el = item.find("pubDate") or item.find(f"{atom}published") or item.find(f"{atom}updated")
+            id_el = item.find("guid") or item.find(f"{atom}id")
 
-                desc_elem = item.find("description")
-                if desc_elem is None:
-                    desc_elem = item.find("{http://www.w3.org/2005/Atom}content")
-                if desc_elem is None:
-                    desc_elem = item.find("{http://www.w3.org/2005/Atom}summary")
+            raw_title = self._text(title_el)
+            link = self._text(link_el)
+            if not link and link_el is not None:
+                link = link_el.attrib.get("href", "").strip()
+            description = self._text(desc_el)
+            posted = self._text(pub_el)
+            external_id = self._text(id_el)
 
-                pub_elem = item.find("pubDate")
-                if pub_elem is None:
-                    pub_elem = item.find("{http://www.w3.org/2005/Atom}published")
+            if not raw_title or not link:
+                # A listing without identity + an actionable URL cannot be safely persisted.
+                continue
 
-                title = title_elem.text if title_elem is not None and title_elem.text else "Untitled Position"
-                link = ""
-                if link_elem is not None:
-                    link = link_elem.text or link_elem.attrib.get("href", "")
-                description = desc_elem.text if desc_elem is not None and desc_elem.text else ""
-                posted_date = pub_elem.text if pub_elem is not None and pub_elem.text else ""
+            title = raw_title
+            company = ""
+            for separator in (" at ", " - "):
+                if separator in title:
+                    title, company = (part.strip() for part in title.split(separator, 1))
+                    break
 
-                company = "Unknown Company"
-                if " at " in title:
-                    parts = title.split(" at ", 1)
-                    title = parts[0].strip()
-                    company = parts[1].strip()
-                elif " - " in title:
-                    parts = title.split(" - ", 1)
-                    title = parts[0].strip()
-                    company = parts[1].strip()
+            if not company:
+                # Keep the company unknown instead of fabricating one.
+                company = "Unknown"
 
-                jobs.append(
-                    Job(
-                        title=title,
-                        company=company,
-                        description=description,
-                        location="Remote",
-                        country=self.default_country,
-                        work_mode="remote",
-                        source=self.name,
-                        application_url=link,
-                        source_url=link,
-                        posted_date=posted_date,
-                    )
+            jobs.append(
+                Job(
+                    external_id=external_id,
+                    title=title[:255],
+                    company=company[:255],
+                    description=description[:5000],
+                    location="Remote",
+                    country=self.default_country,
+                    work_mode="remote",
+                    source=self.name,
+                    application_url=link,
+                    source_url=link,
+                    posted_date=posted,
                 )
-        except Exception as e:
-            logger.error(f"Error fetching RSS job source {self.name}: {e}")
+            )
+
         return jobs

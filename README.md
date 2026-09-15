@@ -1,63 +1,44 @@
 # AI Internship Agent
 
-Production-quality **AI Internship Discovery, Matching, Application Tracking & Safe Browser Automation System** optimized for AI/ML Engineer candidates.
-
----
+Production-oriented **AI Internship Discovery, Matching, Application Tracking & Safe Browser Assistance System** optimized for AI/ML Engineer candidates.
 
 ## 🎯 Target Candidate Profile
 
-- **Candidate**: Ranjith S (B.Sc. Artificial Intelligence & Machine Learning, Grad 2027, CGPA 8.2)
-- **Target Roles**:
-  - AI Engineer Intern / Generative AI Intern / Applied AI Intern
-  - Machine Learning Engineer Intern / AI/ML Engineer Intern
-  - Software Engineer Intern — AI/ML / LLM Engineer Intern
-  - RAG Engineer Intern / AI Agent Engineer Intern
-- **Target Indian Cities**: Bengaluru, Chennai, Coimbatore
-- **International Remote Lane**: Enabled (Worldwide Remote, Global Startups, Unrestricted Remote)
-- **Stipend Target**: Minimum INR 40,000 / month
+- **Candidate**: B.Sc. Artificial Intelligence & Machine Learning, Grad 2027, CGPA 8.2
+- **Target roles**: AI Engineer, Generative AI, Applied AI, ML Engineer, AI/ML Software Engineer, LLM Engineer, RAG Engineer, AI Agent Engineer internships
+- **Target Indian cities**: Bengaluru, Chennai, Coimbatore
+- **International remote lane**: Enabled, but only when a source explicitly indicates a non-India remote scope
+- **Stipend target**: Minimum INR 40,000/month
 
----
-
-## 🏗️ System Architecture
+## 🏗️ Architecture
 
 ```text
-Job Sources (RSS / JSON / Career Pages)
-                ↓
-    Job Ingestion & Normalization (Titles, Remote Category, Stipend)
-                ↓
-        Multi-Signal Deduplication (Source ID / Canonical URL / Hash)
-                ↓
-    Multi-Layer Scoring Engine (Role, Skill Match, Evidence, Seniority, Stipend)
-                ↓
-    LLM JD Analysis & Candidate Question Generator (Gemini / OpenAI / Fallback)
-                ↓
-    SQLite Database Persistence (Jobs & Application Lifecycle Tracking)
-                ↓
-    Executive Web Dashboard & REST API
-                ↓
-    Playwright Browser Safety & Pre-fill (Halts on CAPTCHA / 2FA / Human confirmation)
+RSS / JSON / JSearch Job Sources
+             ↓
+Validation + Normalization + Skill Extraction
+             ↓
+Multi-Signal Deduplication
+             ↓
+Candidate Matching / Scoring
+             ↓
+Optional LLM JD Analysis + Deterministic Fallback
+             ↓
+SQLite Persistence
+             ↓
+FastAPI + Dashboard + Application Tracker
+             ↓
+Safe Browser Inspection → Manual Review → Manual Submission
 ```
 
----
+## 🔒 Safety / Human-in-the-Loop
 
-## 🔒 Absolute Safety & Human-In-The-Loop Rules
+The browser layer is deliberately **not** a bot-bypass or blind auto-apply system.
 
-The browser automation layer strictly enforces safety controls:
-1. **Automated Safety Halts (`MANUAL_ACTION_REQUIRED`)**: Halts execution and notifies the user whenever encountering:
-   - CAPTCHAs / Cloudflare security challenges
-   - 2FA / OTP phone verification
-   - Coding assessments / Personality tests
-   - Government ID / Payment / Credit card forms
-2. **Explicit Human Confirmation**: Pre-fills application forms safely and STOPS before submission. Submission requires explicit user confirmation via `POST /api/browser/submit`.
-
----
+It stops for CAPTCHA/security challenges, OTP/2FA, assessments/tests, government ID, payment/credit-card fields, and other sensitive interactions. A clean form can be inspected and mapped to candidate data, but the system does not claim that an external employer accepted an application. Final submission remains manual.
 
 ## 🚀 Quick Start
 
-### Local Setup
-
 ```bash
-# 1. Create virtual environment
 python -m venv .venv
 
 # Windows PowerShell
@@ -66,92 +47,99 @@ python -m venv .venv
 # macOS/Linux
 source .venv/bin/activate
 
-# 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Environment configuration
+# Windows
 copy .env.example .env
 
-# 4. Initialize Database
-python -m app.db.init
+# macOS/Linux
+# cp .env.example .env
 
-# 5. Start Application Server
+python -m app.db.init
 uvicorn app.main:app --reload
 ```
 
-Open Dashboard: http://127.0.0.1:8000/
-Open API Docs: http://127.0.0.1:8000/docs
+Dashboard: `http://127.0.0.1:8000/`
 
----
+API docs: `http://127.0.0.1:8000/docs`
 
-### Docker Setup
+## 🐳 Docker
 
 ```bash
 docker-compose up --build -d
 ```
 
-Access the dashboard at `http://localhost:8000/`.
+The application listens on port 8000.
 
----
-
-## 🧪 Running Automated Tests
+## 🧪 Tests
 
 ```bash
 pytest tests/ -v
 ```
 
-The test suite covers:
-- `test_scoring.py`: Role matching, seniority penalties, stipend matching, international remote lane.
-- `test_deduplication.py`: Deduplication by external ID, URL, and metadata hash.
-- `test_persistence.py`: SQLite CRUD operations on jobs and application state.
-- `test_api.py`: FastAPI endpoints.
-- `test_llm_fallback.py`: Deterministic fallback parser when API keys are empty.
-- `test_browser_safety.py`: DOM safety checks and human confirmation enforcement.
+CI also runs compilation, database initialization, and the full pytest suite with deterministic LLM behavior and discovery/browser automation disabled.
 
----
+Coverage includes scoring, normalization, deduplication, JSearch parsing/error handling, persistence, API lifecycle tests, LLM fallback, browser safety, and manual-submission enforcement.
 
-## 🌐 API Overview
+## 🌐 API
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/health` | Service health status |
-| `GET` | `/api/profile` | Candidate profile & preferences |
-| `POST` | `/api/score` | Score a job against candidate profile |
-| `GET` | `/api/discovery/urls` | Discovery search template URLs |
-| `POST` | `/api/discovery/run` | Execute job discovery pipeline across sources |
-| `GET` | `/api/jobs` | Query discovered jobs with score & location filters |
-| `GET` | `/api/jobs/{id}` | Detailed job view with score breakdown & LLM analysis |
-| `POST` | `/api/analyze/job` | Run LLM / Fallback structured JD analysis |
-| `POST` | `/api/applications` | Save job to application tracker |
-| `GET` | `/api/applications` | List applications by status |
-| `PATCH` | `/api/applications/{id}` | Update application status or answers |
-| `POST` | `/api/applications/questions/generate` | Generate candidate-grounded application answers |
-| `POST` | `/api/browser/prepare` | Inspect form & pre-fill fields |
-| `POST` | `/api/browser/submit` | Submit application upon human confirmation |
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/health` | Database / provider health |
+| GET | `/api/profile` | Candidate profile |
+| POST | `/api/score` | Score a supplied job |
+| GET | `/api/discovery/urls` | Build navigational search URLs |
+| POST | `/api/discovery/run` | Run registered discovery adapters |
+| GET | `/api/jobs` | Filter/sort persisted jobs |
+| POST | `/api/jobs` | Normalize, score and persist a job |
+| GET | `/api/jobs/{id}` | Job detail |
+| POST | `/api/analyze/job` | Structured JD analysis |
+| GET | `/api/metrics` | Persisted pipeline/application metrics |
+| POST | `/api/applications` | Create tracked application |
+| GET | `/api/applications` | List tracked applications |
+| GET | `/api/applications/{id}` | Application detail |
+| PATCH | `/api/applications/{id}` | Update application lifecycle |
+| POST | `/api/applications/questions/generate` | Candidate-grounded answers |
+| POST | `/api/browser/prepare` | Inspect application form safely |
+| POST | `/api/browser/submit` | Confirm local readiness for manual submission; never fakes external submission |
 
----
+## 🔌 Job Sources
 
-## 🔌 Adding a New Job Source
+Production discovery uses real adapters configured in `app/sources/registry.py`. Sources that cannot provide a real listing are not used as fake production data.
 
-To add a new job source adapter:
-1. Create a new subclass of `JobSource` in `app/sources/`.
-2. Implement `fetch_jobs(self) -> list[Job]`.
-3. Register the instance in `app/sources/registry.py` under `get_default_sources()`.
+To add a source:
 
----
+1. Create a `JobSource` subclass under `app/sources/`.
+2. Implement `fetch_jobs() -> list[Job]`.
+3. Validate title/company/application URL and preserve source currency.
+4. Register the adapter in `get_default_sources()`.
+5. Add parser and failure-path tests.
 
-## 📊 Status Matrix
+## 📊 Implementation Status
 
-| Component | Status | Implementation Details |
-|-----------|--------|------------------------|
-| Candidate Profile | Implemented | Grounded in `config/candidate_profile.json` |
-| Job Ingestion Adapters | Implemented | RSS, JSON feed, Curated Career sources |
-| Normalization & Deduplication | Implemented | Multi-signal deduplication & remote lane classification |
-| Multi-Layer Scoring | Implemented | Role, skill, evidence, seniority, stipend, location |
-| LLM Analysis & Fallback | Implemented | Gemini, OpenAI & Deterministic Fallback |
-| Question Generator | Implemented | Grounded in candidate profile & evidence |
-| Application Tracker | Implemented | Full lifecycle (`saved`, `preparing`, `applied`, `interview`, `offer`) |
-| Scheduled Discovery | Implemented | Configurable background scheduler |
-| Browser Safety Automation | Implemented | Safe form inspection & human-in-the-loop confirmation |
-| Executive Dashboard | Implemented | Single-page glassmorphism web interface |
-| Docker & Tests | Implemented | Dockerfile, docker-compose, pytest suite |
+| Component | Status |
+|---|---|
+| Candidate profile | Implemented |
+| Real job ingestion adapters | Implemented |
+| Validation / normalization | Implemented |
+| Deduplication | Implemented |
+| Candidate scoring | Implemented |
+| LLM + deterministic fallback | Implemented |
+| JD analysis | Implemented |
+| Application answer generation | Implemented |
+| Application lifecycle tracker | Implemented |
+| Scheduled discovery | Implemented |
+| Browser form inspection | Implemented |
+| Safety halts / manual review | Implemented |
+| Dashboard | Implemented |
+| Metrics API | Implemented |
+| Docker | Implemented |
+| Automated regression suite | Implemented |
+| CI verification | Continuously verified by GitHub Actions |
+
+## ⚠️ Important Production Notes
+
+- Discovery is disabled by default until real source/API configuration is supplied.
+- Application automation is disabled by default.
+- Foreign salaries are not silently converted to INR without a configured FX rate.
+- The repository does not manufacture successful applications, fabricated job listings, or fabricated candidate contact details.

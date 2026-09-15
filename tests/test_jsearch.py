@@ -31,7 +31,6 @@ def test_jsearch_skips_without_api_key():
 
 def test_jsearch_parses_and_deduplicates(monkeypatch):
     calls = []
-
     payload = {
         "data": [
             {
@@ -63,6 +62,7 @@ def test_jsearch_parses_and_deduplicates(monkeypatch):
                 "employer_name": "Example AI",
             },
         ]
+    }
 
     def fake_get(*args, **kwargs):
         calls.append((args, kwargs))
@@ -110,5 +110,23 @@ def test_jsearch_isolates_http_failures(monkeypatch):
         raise httpx.ConnectError("offline")
 
     monkeypatch.setattr("app.sources.jsearch.httpx.get", fake_get)
+    source = JSearchJobSource(api_key="test-key", queries=("AI intern",))
+    assert source.fetch_jobs() == []
+
+
+def test_jsearch_handles_bad_json(monkeypatch):
+    monkeypatch.setattr(
+        "app.sources.jsearch.httpx.get",
+        lambda *a, **k: FakeResponse(payload=ValueError("bad json")),
+    )
+    source = JSearchJobSource(api_key="test-key", queries=("AI intern",))
+    assert source.fetch_jobs() == []
+
+
+def test_jsearch_handles_http_error(monkeypatch):
+    monkeypatch.setattr(
+        "app.sources.jsearch.httpx.get",
+        lambda *a, **k: FakeResponse(payload={}, status_code=429),
+    )
     source = JSearchJobSource(api_key="test-key", queries=("AI intern",))
     assert source.fetch_jobs() == []

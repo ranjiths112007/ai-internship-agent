@@ -9,14 +9,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: pip
 
       - name: Install dependencies
         run: |
@@ -24,13 +27,14 @@ jobs:
           pip install -r requirements.txt
 
       - name: Compile check
-        run: |
-          python -m compileall app tests
+        run: python -m compileall -q app tests
 
       - name: Initialize Database
-        run: |
-          python -m app.db.init
+        run: python -m app.db.init
 
       - name: Run Pytest Suite
-        run: |
-          pytest tests/ -v
+        env:
+          DISCOVERY_ENABLED: 'false'
+          APPLICATION_AUTOMATION_ENABLED: 'false'
+          LLM_PROVIDER: deterministic
+        run: pytest tests/ -v --tb=short

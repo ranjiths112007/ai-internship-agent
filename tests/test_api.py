@@ -25,34 +25,27 @@ def test_api_profile():
 
 
 def test_api_score():
-    job_payload = {
-        "title": "AI Engineer Intern",
-        "company": "Nexus AI",
-        "description": "RAG, pgvector, FastAPI",
-        "location": "Bengaluru",
+    response = client.post("/api/score", json={
+        "title": "AI Engineer Intern", "company": "Nexus AI",
+        "description": "RAG, pgvector, FastAPI", "location": "Bengaluru",
         "stipend_monthly_inr": 45000,
-    }
-    response = client.post("/api/score", json=job_payload)
+    })
     assert response.status_code == 200
     data = response.json()
-    assert "score" in data
-    assert data["score"]["total"] > 60.0
+    assert "score" in data and data["score"]["total"] > 60.0
 
 
 def test_api_discovery_urls():
     response = client.get("/api/discovery/urls")
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
-    assert len(response.json()) > 0
+    assert isinstance(response.json(), list) and len(response.json()) > 0
 
 
 def test_api_discovery_run():
     response = client.post("/api/discovery/run")
     assert response.status_code == 200
     data = response.json()
-    assert "sources_checked" in data
-    assert "jobs_seen" in data
-    assert "new_jobs" in data
+    assert {"sources_checked", "jobs_seen", "new_jobs"}.issubset(data)
 
 
 def test_api_jobs_list():
@@ -67,11 +60,8 @@ def test_api_job_lifecycle_and_application_tracking():
         "title": "RAG AI Engineer Intern",
         "company": "Lifecycle Test AI",
         "description": "Build Python FastAPI RAG systems with embeddings.",
-        "location": "Chennai, India",
-        "country": "India",
-        "work_mode": "onsite",
-        "stipend_monthly_inr": 45000,
-        "source": "test",
+        "location": "Chennai, India", "country": "India", "work_mode": "onsite",
+        "stipend_monthly_inr": 45000, "source": "test",
         "application_url": "https://example.test/apply/lifecycle",
     }
     created = client.post("/api/jobs", json=job_payload)
@@ -83,22 +73,16 @@ def test_api_job_lifecycle_and_application_tracking():
     assert duplicate.json()["created"] is False
     assert duplicate.json()["id"] == job_id
 
-    application = client.post(
-        "/api/applications",
-        json={
-            "job_id": job_id,
-            "status": "shortlisted",
-            "notes": "Strong RAG match",
-        },
-    )
+    application = client.post("/api/applications", json={
+        "job_id": job_id, "status": "shortlisted", "notes": "Strong RAG match",
+    })
     assert application.status_code == 200
     app_id = application.json()["id"]
     assert application.json()["status"] == "shortlisted"
 
-    patched = client.patch(
-        f"/api/applications/{app_id}",
-        json={"status": "applied", "notes": "Submitted manually"},
-    )
+    patched = client.patch(f"/api/applications/{app_id}", json={
+        "status": "applied", "notes": "Submitted manually",
+    })
     assert patched.status_code == 200
     assert patched.json()["status"] == "applied"
     assert patched.json()["applied_at"] is not None
@@ -109,24 +93,23 @@ def test_api_job_lifecycle_and_application_tracking():
 
 
 def test_api_application_validation_and_missing_resources():
-    missing = client.post(
-        "/api/applications",
-        json={"job_id": "does-not-exist", "status": "saved"},
-    )
+    missing = client.post("/api/applications", json={"job_id": "does-not-exist", "status": "saved"})
     assert missing.status_code == 404
-
     missing_get = client.get("/api/applications/not-real")
     assert missing_get.status_code == 404
 
 
+def test_api_invalid_application_status_is_rejected():
+    response = client.get("/api/applications", params={"status": "not-a-real-status"})
+    assert response.status_code == 400
+
+
 def test_api_questions_generate():
-    payload = {
-        "job_title": "AI Engineer Intern",
-        "company": "HyperScale AI",
+    response = client.post("/api/applications/questions/generate", json={
+        "job_title": "AI Engineer Intern", "company": "HyperScale AI",
         "job_description": "Building RAG and vector search",
         "questions": ["Why do you want to join us?"],
-    }
-    response = client.post("/api/applications/questions/generate", json=payload)
+    })
     assert response.status_code == 200
     data = response.json()
     assert len(data["answers"]) == 1
@@ -134,18 +117,12 @@ def test_api_questions_generate():
 
 
 def test_browser_submit_never_fakes_external_submission():
-    response = client.post(
-        "/api/browser/submit",
-        json={"application_id": "local-test", "confirmed": True},
-    )
+    response = client.post("/api/browser/submit", json={"application_id": "local-test", "confirmed": True})
     assert response.status_code == 200
     assert response.json()["status"] == "READY_FOR_MANUAL_SUBMISSION"
 
 
 def test_browser_submit_requires_confirmation():
-    response = client.post(
-        "/api/browser/submit",
-        json={"application_id": "local-test", "confirmed": False},
-    )
+    response = client.post("/api/browser/submit", json={"application_id": "local-test", "confirmed": False})
     assert response.status_code == 200
     assert response.json()["status"] == "STOPPED"

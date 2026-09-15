@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.browser.application_runner import prepare_application_workflow, submit_application_workflow
 from app.core.config import settings
 from app.db.models import JobModel
 from app.db.session import get_db
@@ -13,13 +15,13 @@ from app.models.schemas import (
     ApplicationCreate, ApplicationResponse, ApplicationUpdate,
     BrowserPrepareRequest, BrowserPrepareResponse, BrowserSubmitRequest,
     DiscoveryRunResult, Job, JobAnalysisResult, QuestionGenerationRequest,
-    QuestionGenerationResponse, ScoreBreakdown, ScoredJob
+    QuestionGenerationResponse, ScoredJob,
 )
-from app.browser.application_runner import prepare_application_workflow, submit_application_workflow
 from app.services.application import (
     create_application, generate_application_answers, get_application,
-    list_applications, update_application
+    list_applications, update_application,
 )
+from app.services.deduplication import compute_dedup_hash
 from app.services.discovery import build_search_urls, run_discovery_pipeline
 from app.services.llm import get_llm_provider
 from app.services.normalization import normalize_job
@@ -28,21 +30,39 @@ from app.services.scoring import load_profile, score_job
 router = APIRouter()
 
 
+def _json_list(value: Optional[str]) -> list:
+    if not value:
+        return []
+    try:
+        parsed = json.loads(value)
+        return parsed if isinstance(parsed, list) else []
+    except (TypeError, json.JSONDecodeError):
+        return []
+
+
+def _json_dict(value: Optional[str]) -> dict:
+    if not value:
+        return {}
+    try:
+        parsed = json.loads(value)
+        return parsed if isinstance(parsed, dict) else {}
+    except (TypeError, json.JSONDecodeError):
+        return {}
+
+
 @router.get("/health")
 def health(db: Session = Depends(get_db)) -> dict[str, str]:
-    db_status = "ok"
+    database = "ok"
     try:
         db.execute(text("SELECT 1"))
     except Exception:
-        db_status = "error"
+        database = "error"
 
     llm_provider = get_llm_provider()
-    llm_status = llm_provider.__class__.__name__
-
     return {
-        "status": "ok",
-        "database": db_status,
-        "llm_provider": llm_status,
+        "status": "ok" if database == "ok" else "degraded",
+        "database": database,
+        "llm_provider": llm_provider.__class__.__name__,
         "scheduler": "enabled" if settings.discovery_enabled else "disabled",
     }
 
@@ -54,14 +74,14 @@ def profile() -> dict:
 
 @router.post("/score", response_model=ScoredJob)
 def score(job: Job) -> ScoredJob:
-    norm_job = normalize_job(job)
-    return ScoredJob(job=norm_job, score=score_job(norm_job))
+    normalized = normalize_job(job)
+    return ScoredJob(job=normalized, score=score_job(normalized))
 
 
 @router.get("/discovery/urls")
 def discovery_urls() -> list[dict[str, str]]:
     profile_data = load_profile()
-    return build_search_urls(profile_data["target_roles"], profile_data["locations"])
+    return build_search_urls(profile_data.get("target_roles", []), profile_data.get("locations", []))
 
 
 @router.post("/discovery/run", response_model=DiscoveryRunResult)
@@ -79,7 +99,6 @@ def get_jobs(
     db: Session = Depends(get_db),
 ):
     query = db.query(JobModel).filter(JobModel.score_total >= min_score)
-
     if remote_only:
         query = query.filter(JobModel.work_mode.ilike("%remote%"))
     if international_only:
@@ -87,15 +106,9 @@ def get_jobs(
     if location:
         query = query.filter(JobModel.location.ilike(f"%{location}%"))
 
-    jobs_models = query.order_by(JobModel.score_total.desc()).limit(limit).all()
-
-    results = []
-    for j in jobs_models:
-        skills = json.loads(j.skills_json) if j.skills_json else []
-        perks = json.loads(j.perks_json) if j.perks_json else []
-        score_bd = json.loads(j.score_breakdown_json) if j.score_breakdown_json else {}
-
-        results.append({
+    jobs_models = query.order_by(JobModel.score_total.desc(), JobModel.created_at.desc()).limit(limit).all()
+    return [
+        {
             "id": j.id,
             "external_id": j.external_id,
             "title": j.title,
@@ -111,49 +124,59 @@ def get_jobs(
             "currency": j.currency,
             "source": j.source,
             "application_url": j.application_url,
-            "skills": skills,
-            "perks": perks,
+            "skills": _json_list(j.skills_json),
+            "perks": _json_list(j.perks_json),
             "posted_date": j.posted_date,
             "score_total": j.score_total,
-            "score_breakdown": score_bd,
-        })
-    return results
+            "score_breakdown": _json_dict(j.score_breakdown_json),
+        }
+        for j in jobs_models
+    ]
 
 
-@router.post("/jobs")
+@router.post("/jobs", status_code=201)
 def create_job(job: Job, db: Session = Depends(get_db)):
-    norm_job = normalize_job(job)
-    score_bd = score_job(norm_job)
+    normalized = normalize_job(job)
+    normalized.dedup_hash = compute_dedup_hash(normalized)
 
+    existing = db.query(JobModel).filter(JobModel.dedup_hash == normalized.dedup_hash).first()
+    if existing:
+        return {"id": existing.id, "title": existing.title, "score_total": existing.score_total, "created": False}
+
+    score_breakdown = score_job(normalized)
     db_job = JobModel(
-        external_id=norm_job.external_id,
-        source=norm_job.source,
-        title=norm_job.title,
-        normalized_title=norm_job.normalized_title,
-        company=norm_job.company,
-        description=norm_job.description,
-        location=norm_job.location,
-        country=norm_job.country,
-        work_mode=norm_job.work_mode,
-        remote_category=norm_job.remote_category,
-        location_category=norm_job.location_category,
-        employment_type=norm_job.employment_type,
-        stipend_monthly_inr=norm_job.stipend_monthly_inr,
-        salary_text=norm_job.salary_text,
-        currency=norm_job.currency,
-        application_url=norm_job.application_url,
-        source_url=norm_job.source_url,
-        skills_json=json.dumps(norm_job.skills),
-        perks_json=json.dumps(norm_job.perks),
-        posted_date=norm_job.posted_date,
-        dedup_hash=norm_job.dedup_hash,
-        score_total=score_bd.total,
-        score_breakdown_json=json.dumps(score_bd.model_dump()),
+        external_id=normalized.external_id,
+        source=normalized.source,
+        title=normalized.title,
+        normalized_title=normalized.normalized_title,
+        company=normalized.company,
+        description=normalized.description,
+        location=normalized.location,
+        country=normalized.country,
+        work_mode=normalized.work_mode,
+        remote_category=normalized.remote_category,
+        location_category=normalized.location_category,
+        employment_type=normalized.employment_type,
+        stipend_monthly_inr=normalized.stipend_monthly_inr,
+        salary_text=normalized.salary_text,
+        currency=normalized.currency,
+        application_url=normalized.application_url,
+        source_url=normalized.source_url,
+        skills_json=json.dumps(normalized.skills),
+        perks_json=json.dumps(normalized.perks),
+        posted_date=normalized.posted_date,
+        dedup_hash=normalized.dedup_hash,
+        score_total=score_breakdown.total,
+        score_breakdown_json=json.dumps(score_breakdown.model_dump()),
     )
     db.add(db_job)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Job could not be created; it may already exist.")
     db.refresh(db_job)
-    return {"id": db_job.id, "title": db_job.title, "score_total": db_job.score_total}
+    return {"id": db_job.id, "title": db_job.title, "score_total": db_job.score_total, "created": True}
 
 
 @router.get("/jobs/{id}")
@@ -161,11 +184,6 @@ def get_job_detail(id: str, db: Session = Depends(get_db)):
     job_model = db.query(JobModel).filter(JobModel.id == id).first()
     if not job_model:
         raise HTTPException(status_code=404, detail="Job not found")
-
-    skills = json.loads(job_model.skills_json) if job_model.skills_json else []
-    perks = json.loads(job_model.perks_json) if job_model.perks_json else []
-    score_bd = json.loads(job_model.score_breakdown_json) if job_model.score_breakdown_json else {}
-    llm_analysis = json.loads(job_model.llm_analysis_json) if job_model.llm_analysis_json else {}
 
     return {
         "id": job_model.id,
@@ -183,27 +201,26 @@ def get_job_detail(id: str, db: Session = Depends(get_db)):
         "currency": job_model.currency,
         "source": job_model.source,
         "application_url": job_model.application_url,
-        "skills": skills,
-        "perks": perks,
+        "skills": _json_list(job_model.skills_json),
+        "perks": _json_list(job_model.perks_json),
         "posted_date": job_model.posted_date,
         "score_total": job_model.score_total,
-        "score_breakdown": score_bd,
-        "llm_analysis": llm_analysis,
+        "score_breakdown": _json_dict(job_model.score_breakdown_json),
+        "llm_analysis": _json_dict(job_model.llm_analysis_json),
     }
 
 
 @router.post("/analyze/job", response_model=JobAnalysisResult)
 def analyze_job(job: Job):
-    llm = get_llm_provider()
-    return llm.analyze_job_description(job)
+    return get_llm_provider().analyze_job_description(normalize_job(job))
 
 
 @router.post("/applications", response_model=ApplicationResponse)
 def create_app(data: ApplicationCreate, db: Session = Depends(get_db)):
     try:
         return create_application(db, data)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.get("/applications", response_model=list[ApplicationResponse])
@@ -213,18 +230,18 @@ def get_apps(status: Optional[str] = None, db: Session = Depends(get_db)):
 
 @router.get("/applications/{id}", response_model=ApplicationResponse)
 def get_app_detail(id: str, db: Session = Depends(get_db)):
-    app_res = get_application(db, id)
-    if not app_res:
+    result = get_application(db, id)
+    if not result:
         raise HTTPException(status_code=404, detail="Application not found")
-    return app_res
+    return result
 
 
 @router.patch("/applications/{id}", response_model=ApplicationResponse)
 def update_app_route(id: str, data: ApplicationUpdate, db: Session = Depends(get_db)):
-    updated = update_application(db, id, data)
-    if not updated:
+    result = update_application(db, id, data)
+    if not result:
         raise HTTPException(status_code=404, detail="Application not found")
-    return updated
+    return result
 
 
 @router.post("/applications/questions/generate", response_model=QuestionGenerationResponse)

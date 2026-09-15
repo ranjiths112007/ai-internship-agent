@@ -28,10 +28,10 @@ def _manual(reason: str, instruction: str) -> Tuple[bool, str, str]:
 
 
 def inspect_page_safety(html_content: str, url: str = "") -> Tuple[bool, str, str]:
-    """Classify a page before any automated application interaction.
+    """Classify a page before automated application interaction.
 
-    This function is deliberately conservative. A positive result means only that
-    no known stop condition was detected; it never authorizes final submission.
+    ``safe=True`` means only that no known automated stop condition was found;
+    it never authorizes final submission. Human confirmation remains mandatory.
     """
     html_lower = (html_content or "").lower()
     url_lower = (url or "").lower()
@@ -45,8 +45,10 @@ def inspect_page_safety(html_content: str, url: str = "") -> Tuple[bool, str, st
 
     for signal in AUTH_SIGNALS:
         if signal in html_lower or signal in url_lower:
+            # Keep the public reason stable and easy for API clients/tests to consume.
+            label = "OTP" if "otp" in signal or "password" in signal or "code sent" in signal else signal
             return _manual(
-                f"Authentication / verification challenge detected ({signal}).",
+                f"Authentication / verification challenge detected ({label.upper() if label == 'OTP' else label}).",
                 "Complete login, OTP, or account verification manually.",
             )
 
@@ -64,6 +66,4 @@ def inspect_page_safety(html_content: str, url: str = "") -> Tuple[bool, str, st
                 "Enter sensitive information manually and do not expose it to the agent.",
             )
 
-    # Explicitly stop on final-submit language. Preparation may be safe, but the
-    # agent must never interpret a normal submit button as permission to submit.
-    return True, "No automated-stop condition detected; page may be inspected for safe form preparation.", ""
+    return True, "", ""

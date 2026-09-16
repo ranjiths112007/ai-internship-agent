@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="AI Internship Agent",
-    version="1.1.0",
+    version="1.2.0",
     description=(
         "AI-powered internship discovery, matching, application tracking, "
         "dashboard metrics, and safe human-supervised browser assistance."
@@ -44,7 +44,7 @@ def dashboard() -> HTMLResponse:
     if DASHBOARD_PATH.exists():
         return HTMLResponse(content=DASHBOARD_PATH.read_text(encoding="utf-8"))
     return HTMLResponse(
-        "<h1>AI Internship Agent</h1><p>API is running. Visit <a href='/docs'>/docs</a>.</p>"
+        "<h1>AI Internship Agent</h1><p>Dashboard file is missing. Visit <a href='/docs'>/docs</a>.</p>"
     )
 
 
@@ -53,8 +53,17 @@ def status() -> dict[str, str]:
     return {
         "name": "AI Internship Agent",
         "status": "running",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "docs": "/docs",
         "dashboard": "/dashboard",
         "metrics": "/api/metrics",
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    print("\nAI Internship Agent is starting...")
+    print("Dashboard: http://127.0.0.1:8000/dashboard")
+    print("API docs:  http://127.0.0.1:8000/docs\n")
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=False)

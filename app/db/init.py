@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from app.db.session import engine, Base
-from app.db.models import JobModel, ApplicationModel
+from app.db.models import JobModel, ApplicationModel, CandidateProfileModel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("db_init")

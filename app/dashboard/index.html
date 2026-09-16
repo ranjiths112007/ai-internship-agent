@@ -3,43 +3,99 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Internship Agent — Job Command Center</title>
+<title>AI Internship Agent — Job Command Center</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0b0d0f;--panel:#111417;--panel2:#15191d;--line:#252a2f;--text:#f4f5f6;--muted:#8c949d;--green:#b8f36b;--blue:#8ab4ff;--red:#ff7d7d;--yellow:#ffd166;--shadow:0 18px 60px rgba(0,0,0,.28)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px}button,input,select{font:inherit}button{cursor:pointer}.shell{display:grid;grid-template-columns:238px 1fr;min-height:100vh}.side{position:sticky;top:0;height:100vh;border-right:1px solid var(--line);padding:24px 16px;background:#0c0f11}.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 28px;font-weight:700;letter-spacing:-.3px}.mark{width:29px;height:29px;border-radius:8px;background:var(--green);color:#0b0d0f;display:grid;place-items:center;font-weight:800}.brand small{display:block;color:var(--muted);font-weight:400;font-size:11px;margin-top:2px}.nav{display:grid;gap:5px}.nav button{border:0;background:transparent;color:#9ca3aa;text-align:left;padding:11px 12px;border-radius:8px;display:flex;gap:11px;align-items:center}.nav button:hover,.nav button.active{background:#171b1f;color:#fff}.nav button.active{box-shadow:inset 2px 0 0 var(--green)}.side-note{position:absolute;bottom:20px;left:18px;right:18px;border:1px solid var(--line);background:#111518;border-radius:10px;padding:12px;color:var(--muted);font-size:12px;line-height:1.5}.main{min-width:0}.top{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 34px;position:sticky;top:0;background:rgba(11,13,15,.88);backdrop-filter:blur(16px);z-index:10}.crumb{color:var(--muted);font-size:13px}.top-actions{display:flex;gap:8px}.btn{border:1px solid var(--line);background:#15191d;color:#e9ecef;border-radius:7px;padding:9px 13px;font-weight:600;font-size:13px}.btn:hover{border-color:#3b4249;background:#1a1f24}.btn.primary{background:var(--green);border-color:var(--green);color:#10130d}.btn.primary:hover{filter:brightness(.94)}.content{max-width:1320px;margin:auto;padding:38px 34px 60px}.hero{display:flex;justify-content:space-between;align-items:end;gap:25px;margin-bottom:28px}.eyebrow{font-family:'IBM Plex Mono';font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:9px}.hero h1{font-size:42px;line-height:1.03;letter-spacing:-1.8px;margin:0 0 10px;font-weight:700}.hero p{margin:0;color:var(--muted);max-width:640px}.hero-actions{display:flex;gap:8px;flex-shrink:0}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}.stat label{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px}.stat strong{display:block;font-size:28px;margin-top:8px;letter-spacing:-1px}.stat span{display:block;color:#69717a;font-size:12px;margin-top:3px}.toolbar{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.search{flex:1;min-width:230px;background:#0d1012;border:1px solid var(--line);color:#fff;border-radius:7px;padding:10px 12px;outline:none}.search:focus{border-color:#58616a}.select{background:#0d1012;color:#ddd;border:1px solid var(--line);border-radius:7px;padding:10px}.section-head{display:flex;align-items:center;justify-content:space-between;margin:22px 0 12px}.section-head h2{font-size:17px;margin:0;letter-spacing:-.3px}.section-head span{font-size:12px;color:var(--muted)}.jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.job{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px;transition:.18s ease;display:flex;flex-direction:column;min-height:245px}.job:hover{transform:translateY(-2px);border-color:#394149;box-shadow:var(--shadow)}.jobtop{display:flex;justify-content:space-between;gap:15px}.companyline{display:flex;gap:10px;min-width:0}.logo{width:38px;height:38px;border:1px solid var(--line);background:#181d21;border-radius:9px;display:grid;place-items:center;font-weight:700;color:#dbe0e5;flex-shrink:0}.job h3{font-size:16px;margin:0 0 3px;letter-spacing:-.25px}.company{color:#a6afb7;font-size:13px}.score{font-family:'IBM Plex Mono';font-size:12px;color:var(--green);border:1px solid #354827;background:#182016;border-radius:6px;padding:6px 8px;height:max-content}.meta{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 12px}.tag{font-size:11px;color:#aeb6bd;border:1px solid var(--line);background:#15191c;border-radius:5px;padding:4px 7px}.tag.remote{color:var(--blue)}.desc{color:#9aa2aa;font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.skills{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}.skill{font-size:10px;color:#7f8992;background:#0d1012;padding:4px 6px;border-radius:4px}.jobfoot{margin-top:auto;padding-top:15px;border-top:1px solid #20252a;display:flex;justify-content:space-between;align-items:center}.pay{font-size:12px;color:var(--green)}.joblinks{display:flex;gap:6px}.mini{padding:7px 9px;font-size:11px}.empty{border:1px dashed #30363c;border-radius:11px;padding:48px 25px;text-align:center;background:#0f1214;grid-column:1/-1}.empty .big{font-size:28px;margin-bottom:9px}.empty p{color:var(--muted);max-width:500px;margin:8px auto 18px;line-height:1.55}.notice{display:none;border:1px solid #4a3c21;background:#17140d;color:#d9c38b;border-radius:8px;padding:11px 13px;margin-bottom:14px;font-size:12px}.tracker{display:none}.app-list{display:grid;gap:8px}.app{background:var(--panel);border:1px solid var(--line);padding:15px;border-radius:9px;display:flex;justify-content:space-between;align-items:center}.status{font-size:11px;padding:5px 7px;border-radius:5px;background:#182016;color:var(--green)}.profile{display:none;grid-template-columns:1fr 1fr;gap:12px}.profile-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}.profile-card h3{margin:0 0 15px;font-size:15px}.profile-card p{color:var(--muted);margin:7px 0;font-size:13px}.chips{display:flex;flex-wrap:wrap;gap:6px}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:30;padding:30px;align-items:center;justify-content:center}.modal.open{display:flex}.modalbox{width:min(760px,100%);max-height:85vh;overflow:auto;background:#111417;border:1px solid #30363d;border-radius:12px;padding:24px;box-shadow:0 30px 100px #000}.modalhead{display:flex;justify-content:space-between;gap:15px}.modal h2{margin:0}.close{border:0;background:none;color:#aaa;font-size:22px}.modalbody{color:#aeb5bc;font-size:13px;line-height:1.7;margin-top:20px;white-space:pre-wrap}.toast{position:fixed;right:22px;bottom:22px;background:#e9f8d3;color:#10130d;padding:11px 15px;border-radius:7px;font-size:12px;font-weight:700;display:none;z-index:50}
-@media(max-width:900px){.shell{grid-template-columns:1fr}.side{display:none}.stats{grid-template-columns:repeat(2,1fr)}.jobs{grid-template-columns:1fr}.hero{display:block}.hero-actions{margin-top:18px}.content{padding:25px 18px}.top{padding:0 18px}.profile{grid-template-columns:1fr}}
-@media(max-width:560px){.stats{grid-template-columns:1fr}.hero h1{font-size:32px}.toolbar{display:grid}.search{width:100%}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px}button,input,select,textarea{font:inherit}button{cursor:pointer}.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}.side{position:sticky;top:0;height:100vh;border-right:1px solid var(--line);padding:24px 16px;background:#0c0f11;display:flex;flex-direction:column}.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 24px;font-weight:700;letter-spacing:-.3px}.mark{width:30px;height:30px;border-radius:8px;background:var(--green);color:#0b0d0f;display:grid;place-items:center;font-weight:800}.brand small{display:block;color:var(--muted);font-weight:400;font-size:11px;margin-top:2px}.nav{display:grid;gap:5px}.nav button{border:0;background:transparent;color:#9ca3aa;text-align:left;padding:11px 12px;border-radius:8px;display:flex;gap:11px;align-items:center;width:100%}.nav button:hover,.nav button.active{background:#171b1f;color:#fff}.nav button.active{box-shadow:inset 2px 0 0 var(--green)}.side-foot{margin-top:auto;border:1px solid var(--line);background:#111518;border-radius:10px;padding:12px;color:var(--muted);font-size:12px;line-height:1.5}.main{min-width:0}.top{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 34px;position:sticky;top:0;background:rgba(11,13,15,.88);backdrop-filter:blur(16px);z-index:10}.crumb{color:var(--muted);font-size:13px}.top-actions{display:flex;gap:8px}.btn{border:1px solid var(--line);background:#15191d;color:#e9ecef;border-radius:7px;padding:9px 13px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px}.btn:hover{border-color:#3b4249;background:#1a1f24}.btn.primary{background:var(--green);border-color:var(--green);color:#10130d}.btn.primary:hover{filter:brightness(.94)}.btn.danger{background:#2a1616;border-color:#5c2424;color:var(--red)}.btn.danger:hover{background:#3d1c1c}.content{max-width:1320px;margin:auto;padding:34px 34px 60px}.hero{display:flex;justify-content:space-between;align-items:end;gap:25px;margin-bottom:24px}.eyebrow{font-family:'IBM Plex Mono';font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px}.hero h1{font-size:38px;line-height:1.05;letter-spacing:-1.5px;margin:0 0 8px;font-weight:700}.hero p{margin:0;color:var(--muted);max-width:640px}.onboard-banner{background:#161c14;border:1px solid #354827;border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;gap:20px}.onboard-text h3{margin:0 0 4px;color:var(--green);font-size:17px}.onboard-text p{margin:0;color:#b0c4a4;font-size:13px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}.stat label{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px}.stat strong{display:block;font-size:28px;margin-top:6px;letter-spacing:-1px}.stat span{display:block;color:#69717a;font-size:12px;margin-top:2px}.toolbar{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.search{flex:1;min-width:220px;background:#0d1012;border:1px solid var(--line);color:#fff;border-radius:7px;padding:10px 12px;outline:none}.search:focus{border-color:#58616a}.select{background:#0d1012;color:#ddd;border:1px solid var(--line);border-radius:7px;padding:10px}.section-head{display:flex;align-items:center;justify-content:space-between;margin:22px 0 12px}.section-head h2{font-size:17px;margin:0;letter-spacing:-.3px}.section-head span{font-size:12px;color:var(--muted)}.jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.job{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px;transition:.18s ease;display:flex;flex-direction:column;min-height:260px}.job:hover{transform:translateY(-2px);border-color:#394149;box-shadow:var(--shadow)}.jobtop{display:flex;justify-content:space-between;gap:15px}.companyline{display:flex;gap:10px;min-width:0}.logo{width:38px;height:38px;border:1px solid var(--line);background:#181d21;border-radius:9px;display:grid;place-items:center;font-weight:700;color:#dbe0e5;flex-shrink:0}.job h3{font-size:16px;margin:0 0 3px;letter-spacing:-.25px}.company{color:#a6afb7;font-size:13px}.score{font-family:'IBM Plex Mono';font-size:12px;color:var(--green);border:1px solid #354827;background:#182016;border-radius:6px;padding:6px 8px;height:max-content}.meta{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 10px}.tag{font-size:11px;color:#aeb6bd;border:1px solid var(--line);background:#15191c;border-radius:5px;padding:4px 7px}.tag.remote{color:var(--blue)}.desc{color:#9aa2aa;font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.skills{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}.skill{font-size:10px;color:#7f8992;background:#0d1012;padding:4px 6px;border-radius:4px}.jobfoot{margin-top:auto;padding-top:14px;border-top:1px solid #20252a;display:flex;justify-content:space-between;align-items:center;gap:10px}.pay{font-size:12px;color:var(--green);font-weight:600}.joblinks{display:flex;gap:5px;flex-wrap:wrap}.mini{padding:6px 9px;font-size:11px}.empty{border:1px dashed #30363c;border-radius:11px;padding:48px 25px;text-align:center;background:#0f1214;grid-column:1/-1}.empty .big{font-size:32px;margin-bottom:8px}.empty p{color:var(--muted);max-width:500px;margin:8px auto 18px;line-height:1.55}.sources-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}.source-card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px}.source-card label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase}.source-card strong{display:block;margin-top:4px;font-size:14px}.source-card .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.dot-ok{background:var(--green)}.dot-warn{background:var(--yellow)}.dot-err{background:var(--red)}.tracker{display:none}.app-list{display:grid;gap:10px}.app{background:var(--panel);border:1px solid var(--line);padding:16px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;gap:15px}.profile{display:none;grid-template-columns:1fr 1fr;gap:14px}.profile-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px}.profile-card h3{margin:0 0 16px;font-size:16px}.profile-card p{color:var(--muted);margin:8px 0;font-size:13px}.chips{display:flex;flex-wrap:wrap;gap:6px}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);z-index:30;padding:20px;align-items:center;justify-content:center}.modal.open{display:flex}.modalbox{width:min(780px,100%);max-height:88vh;overflow:auto;background:#111417;border:1px solid #30363d;border-radius:12px;padding:24px;box-shadow:0 30px 100px #000}.modalhead{display:flex;justify-content:space-between;gap:15px}.modal h2{margin:0;font-size:20px}.close{border:0;background:none;color:#aaa;font-size:24px}.modalbody{color:#aeb5bc;font-size:13px;line-height:1.7;margin-top:18px;white-space:pre-wrap}.toast{position:fixed;right:22px;bottom:22px;background:#e9f8d3;color:#10130d;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:700;display:none;z-index:50;box-shadow:var(--shadow)}
 </style>
 </head>
 <body>
 <div class="shell">
 <aside class="side">
-  <div class="brand"><div class="mark">A</div><div>Internship Agent<small>Job command center</small></div></div>
+  <div class="brand"><div class="mark">A</div><div>AI Internship Agent<small>Job command center</small></div></div>
   <nav class="nav">
-    <button class="active" onclick="showTab('jobs',this)">⌕ &nbsp; Discover jobs</button>
+    <button class="active" onclick="showTab('jobs',this)">⌕ &nbsp; Discover Jobs</button>
+    <button onclick="showTab('sources',this)">⚡ &nbsp; Source Health</button>
     <button onclick="showTab('tracker',this)">✓ &nbsp; Applications</button>
-    <button onclick="showTab('profile',this)">◉ &nbsp; My profile</button>
+    <button onclick="showTab('profile',this)">◉ &nbsp; My Profile</button>
   </nav>
-  <div class="side-note"><b style="color:#ddd">Human-in-the-loop</b><br>Applications are prepared for you. CAPTCHA, OTP and assessments always stop for manual action.</div>
+  <div class="side-foot"><b style="color:#ddd">Human-in-the-Loop</b><br>Applications are prepared safely. CAPTCHA, OTP, and assessments stop for manual submission.</div>
 </aside>
 <main class="main">
-<header class="top"><div class="crumb">Workspace / <b style="color:#ddd">Internship discovery</b></div><div class="top-actions"><button class="btn" onclick="loadAll()">Refresh</button><button class="btn primary" onclick="discover()">Run discovery ↗</button></div></header>
+<header class="top"><div class="crumb">Workspace / <b style="color:#ddd">Internship Discovery</b></div><div class="top-actions"><button class="btn" onclick="openUploadModal()">📄 Upload Resume</button><button class="btn" onclick="clearJobsPrompt()">Clear Jobs</button><button class="btn primary" onclick="discover()">Run Discovery ↗</button></div></header>
 <div class="content">
-<section class="hero"><div><div class="eyebrow">AI-powered job search</div><h1>Find work worth applying to.</h1><p>Real opportunities are collected, cleaned, scored against your candidate profile, and kept in one place.</p></div><div class="hero-actions"><button class="btn primary" onclick="discover()">Find new internships</button></div></section>
-<div id="notice" class="notice"></div>
-<section class="stats"><div class="stat"><label>Jobs found</label><strong id="sJobs">—</strong><span>stored opportunities</span></div><div class="stat"><label>High fit</label><strong id="sFit">—</strong><span>score 70 or higher</span></div><div class="stat"><label>Applications</label><strong id="sApps">—</strong><span>tracked by the agent</span></div><div class="stat"><label>Interviews / offers</label><strong id="sInterviews">—</strong><span>active pipeline</span></div></section>
-<section id="jobsTab">
-<div class="toolbar"><input id="search" class="search" placeholder="Search role, company, skill…" oninput="renderJobs()"><select id="score" class="select" onchange="loadJobs()"><option value="0">All matches</option><option value="70">70+ high fit</option><option value="80">80+ excellent fit</option><option value="90">90+ strongest fit</option></select><select id="remote" class="select" onchange="loadJobs()"><option value="false">All locations</option><option value="true">Remote only</option></select></div>
-<div class="section-head"><h2>Recommended opportunities</h2><span id="jobCount">Loading…</span></div><div id="jobs" class="jobs"></div>
+
+<div id="onboardBanner" class="onboard-banner" style="display:none">
+  <div class="onboard-text">
+    3>Personalize Your Job Search</h3>
+    <p>Upload your PDF or DOCX resume to extract your skills, degree, CGPA, and target roles for AI-driven matching.</p>
+  </div>
+  <button class="btn primary" onclick="openUploadModal()">Upload Resume ↗</button>
+</div>
+
+<section class="hero">
+  <div>
+    <div class="eyebrow">Real Job Ingestion & Resume Matching</div>
+    <h1>Find work worth applying to.</h1>
+    <p>Live listings collected from JSearch, Apify & RSS feeds, normalized, deduplicated, and ranked against your resume evidence.</p>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn primary" onclick="discover()">Find Internships</button>
+  </div>
 </section>
-<section id="tracker" class="tracker"><div class="section-head"><h2>Application pipeline</h2><span>Keep every application organized</span></div><div id="apps" class="app-list"></div></section>
-<section id="profile" class="profile"><div class="profile-card"><h3>Candidate</h3><div id="candidate"></div></div><div class="profile-card"><h3>Target roles</h3><div id="roles" class="chips"></div><h3 style="margin-top:22px">Skills</h3><div id="skills" class="chips"></div></div></section>
+
+<section class="stats">
+  <div class="stat"><label>Jobs Stored</label><strong id="sJobs">0</strong><span>real opportunities</span></div>
+  <div class="stat"><label>High Fit</label><strong id="sFit">0</strong><span>score 70%+</span></div>
+  <div class="stat"><label>Applications</label><strong id="sApps">0</strong><span>tracked in pipeline</span></div>
+  <div class="stat"><label>Interviews / Offers</label><strong id="sInterviews">0</strong><span>active pipeline</span></div>
+</section>
+
+<section id="jobsTab">
+  <div class="toolbar">
+    <input id="search" class="search" placeholder="Search title, company, skill…" oninput="renderJobs()">
+    <select id="scoreFilter" class="select" onchange="loadJobs()"><option value="0">All matches</option><option value="70">70%+ High fit</option><option value="80">80%+ Excellent fit</option></select>
+    <select id="remoteFilter" class="select" onchange="loadJobs()"><option value="false">All locations</option><option value="true">Remote only</option></select>
+  </div>
+  <div class="section-head"><h2>Ranked Opportunities</h2><span id="jobCount">Loading…</span></div>
+  <div id="jobs" class="jobs"></div>
+</section>
+
+<section id="sources" style="display:none">
+  <div class="section-head"><h2>Live Job Source Health</h2><span>Real-time status of job discovery adapters</span></div>
+  <div id="sourcesGrid" class="sources-grid"></div>
+</section>
+
+<section id="tracker" class="tracker">
+  <div class="section-head"><h2>Application Pipeline</h2><span>Track every job application lifecycle</span></div>
+  <div id="apps" class="app-list"></div>
+</section>
+
+<section id="profile" class="profile">
+  <div class="profile-card">
+    <h3>Candidate Details</h3>
+    <div id="candidateDetails"></div>
+  </div>
+  <div class="profile-card">
+    <h3>Target Roles</h3>
+    <div id="roles" class="chips"></div>
+    <h3 style="margin-top:20px">Extracted Resume Skills</h3>
+    <div id="skills" class="chips"></div>
+  </div>
+</section>
+
 </div></main></div>
-<div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><div><div class="eyebrow">Opportunity</div><h2 id="mTitle"></h2><div id="mCompany" class="company"></div></div><button class="close" onclick="closeModal()">×</button></div><div id="mBody" class="modalbody"></div><div style="display:flex;gap:8px;margin-top:20px"><a id="applyLink" class="btn primary" target="_blank" rel="noopener">Open application ↗</a><button class="btn" onclick="closeModal()">Close</button></div></div></div>
+
+<!-- Modals -->
+<div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><div><div class="eyebrow">Opportunity Details</div><h2 id="mTitle"></h2><div id="mCompany" class="company"></div></div><button class="close" onclick="closeModal()">×</button></div><div id="mBody" class="modalbody"></div><div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap" id="mActions"></div></div></div>
+
+<div id="uploadModal" class="modal"><div class="modalbox" style="max-width:480px"><div class="modalhead"><h2>Upload Resume</h2><button class="close" onclick="closeUploadModal()">×</button></div><div style="margin-top:16px"><p style="color:var(--muted);font-size:13px">Select your PDF, DOCX, TXT, or MD resume file (max 8 MB).</p><input type="file" id="resumeFile" accept=".pdf,.docx,.txt,.md" style="margin:16px 0;width:100%;color:#fff"><button class="btn primary" style="width:100%" onclick="submitResume()">Process Resume ↗</button></div></div></div>
+
 <div id="toast" class="toast"></div>
+
 <script>
 const state={jobs:[],profile:null};
 const $=id=>document.getElementById(id);
@@ -47,18 +103,218 @@ async function api(path,options={}){const r=await fetch('/api'+path,options);let
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function money(j){if(j.stipend_monthly_inr)return `₹${Math.round(j.stipend_monthly_inr).toLocaleString('en-IN')}/mo`;return j.salary_text||'Compensation undisclosed'}
 function initials(name){return (name||'?').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}
-function renderJobs(){const q=$('search').value.toLowerCase().trim();const list=state.jobs.filter(j=>{const hay=[j.title,j.company,j.description,...(j.skills||[])].join(' ').toLowerCase();return !q||hay.includes(q)});$('jobCount').textContent=`${list.length} shown · ${state.jobs.length} stored`;$('jobs').innerHTML=list.length?list.map(j=>`<article class="job"><div><div class="jobtop"><div class="companyline"><div class="logo">${esc(initials(j.company))}</div><div><h3>${esc(j.title)}</h3><div class="company">${esc(j.company||'Company not listed')}</div></div></div><div class="score">${Math.round(j.score_total||0)}%</div></div><div class="meta"><span class="tag">${esc(j.location||'Location unknown')}</span><span class="tag remote">${esc(j.work_mode||'Work mode unknown')}</span><span class="tag">${esc(j.source||'Source')}</span></div><div class="desc">${esc(j.description||'No description provided by the source.')}</div><div class="skills">${(j.skills||[]).slice(0,6).map(s=>`<span class="skill">${esc(s)}</span>`).join('')}</div></div><div class="jobfoot"><span class="pay">${esc(money(j))}</span><div class="joblinks"><button class="btn mini" onclick='viewJob(${JSON.stringify(j)})'>Details</button><a class="btn mini" href="${esc(j.application_url)}" target="_blank" rel="noopener">Apply ↗</a></div></div></article>`).join(''):`<div class="empty"><div class="big">⌁</div><b>No opportunities yet</b><p>Run discovery to fetch real listings. If discovery returns zero jobs, check your source configuration or API key instead of displaying made-up companies.</p><button class="btn primary" onclick="discover()">Run discovery</button></div>`}
-async function loadJobs(){try{const min=$('score').value,remote=$('remote').value;state.jobs=await api(`/jobs?min_score=${min}&remote_only=${remote}&limit=100`);renderJobs()}catch(e){notice(e.message)}}
-async function loadMetrics(){try{const m=await api('/metrics');$('sJobs').textContent=m.jobs?.total??0;$('sFit').textContent=m.jobs?.high_fit??0;$('sApps').textContent=m.applications?.total??0;$('sInterviews').textContent=(m.applications?.by_status?.interview||0)+(m.applications?.by_status?.offer||0)}catch(e){$('sJobs').textContent='—'}}
-async function loadApps(){try{const a=await api('/applications');$('apps').innerHTML=a.length?a.map(x=>`<div class="app"><div><b>${esc(x.job_title||x.job_id)}</b><div class="company">${esc(x.company||'Application')}</div></div><span class="status">${esc(x.status)}</span></div>`).join(''):'<div class="empty"><b>No applications tracked yet.</b><p>Open a job and start preparing an application.</p></div>'}catch(e){$('apps').innerHTML='<div class="empty">Unable to load applications.</div>'}}
-async function loadProfile(){try{const p=await api('/profile');state.profile=p;const c=p.candidate||{};$('candidate').innerHTML=`<p><b style="color:#eee">${esc(c.name)}</b></p><p>${esc(c.education)}</p><p>Graduation: ${esc(c.graduation_year)} · CGPA ${esc(c.cgpa)}</p><p>${esc(c.current_city)}</p>`;$('roles').innerHTML=(p.target_roles||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('');$('skills').innerHTML=(p.skills||[]).slice(0,24).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}catch(e){}}
-async function discover(){toast('Discovery started…');$('notice').style.display='none';try{const r=await api('/discovery/run',{method:'POST'});toast(`Discovery complete · ${r.jobs_discovered??r.discovered??0} jobs found`);await loadAll()}catch(e){notice(`Discovery could not complete: ${e.message}`)}}
-function notice(t){$('notice').textContent=t;$('notice').style.display='block'}
-function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',3200)}
-function viewJob(j){$('mTitle').textContent=j.title||'Opportunity';$('mCompany').textContent=j.company||'Company not listed';$('mBody').textContent=`${j.location||'Location unknown'} · ${j.work_mode||'Work mode unknown'}\n${money(j)}\n\n${j.description||'No description available.'}\n\nMatch score: ${Math.round(j.score_total||0)}%\nSkills: ${(j.skills||[]).join(', ')||'Not listed'}`;$('applyLink').href=j.application_url||'#';$('modal').classList.add('open')}
+
+function renderJobs(){
+  const q=$('search').value.toLowerCase().trim();
+  const list=state.jobs.filter(j=>{const hay=[j.title,j.company,j.description,...(j.skills||[])].join(' ').toLowerCase();return !q||hay.includes(q)});
+  $('jobCount').textContent=`${list.length} shown · ${state.jobs.length} stored`;
+  if(!list.length){
+    $('jobs').innerHTML=`<div class="empty"><div class="big">⌁</div><b>0 jobs found</b><p>No live jobs match your current search/filter criteria. Click "Run Discovery" to fetch real opportunities from configured sources.</p><button class="btn primary" onclick="discover()">Run Discovery ↗</button></div>`;
+    return;
+  }
+  $('jobs').innerHTML=list.map(j=>`
+    <article class="job">
+      <div>
+        <div class="jobtop">
+          <div class="companyline">
+            <div class="logo">${esc(initials(j.company))}</div>
+            <div>
+              <h3>${esc(j.title)}</h3>
+              <div class="company">${esc(j.company||'Company not listed')}</div>
+            </div>
+          </div>
+          <div class="score">${Math.round(j.score_total||0)}%</div>
+        </div>
+        <div class="meta">
+          <span class="tag">${esc(j.location||'Location unknown')}</span>
+          <span class="tag remote">${esc(j.work_mode||'Work mode unknown')}</span>
+          <span class="tag">${esc(j.source||'Source')}</span>
+        </div>
+        <div class="desc">${esc(j.description||'No description provided.')}</div>
+        <div class="skills">${(j.skills||[]).slice(0,6).map(s=>`<span class="skill">${esc(s)}</span>`).join('')}</div>
+      </div>
+      <div class="jobfoot">
+        <span class="pay">${esc(money(j))}</span>
+        <div class="joblinks">
+          <button class="btn mini" onclick='viewJob(${JSON.stringify(j).replace(/'/g, "&#39;")})'>Details</button>
+          <button class="btn mini" onclick="trackJob('${j.id}')">Track</button>
+          <a class="btn mini primary" href="${esc(j.application_url)}" target="_blank" rel="noopener">Apply ↗</a>
+        </div>
+      </div>
+    </article>
+  `).join('');
+}
+
+async function loadJobs(){
+  try{
+    const min=$('scoreFilter').value, remote=$('remoteFilter').value;
+    state.jobs=await api(`/jobs?min_score=${min}&remote_only=${remote}&limit=100`);
+    renderJobs();
+  }catch(e){toast(e.message)}
+}
+
+async function loadMetrics(){
+  try{
+    const m=await api('/metrics');
+    $('sJobs').textContent=m.jobs?.total??0;
+    $('sFit').textContent=m.jobs?.high_fit??0;
+    $('sApps').textContent=m.applications?.total??0;
+    $('sInterviews').textContent=(m.applications?.by_status?.interview||0)+(m.applications?.by_status?.offer||0);
+  }catch(e){}
+}
+
+async function loadSourcesHealth(){
+  try{
+    const sources=await api('/sources/health');
+    $('sourcesGrid').innerHTML=sources.map(s=>{
+      let dot='dot-ok';
+      if(s.status.includes('Not')||s.status.includes('Unauthorized')) dot='dot-warn';
+      if(s.status.includes('Failed')) dot='dot-err';
+      return `<div class="source-card"><label>${esc(s.type)}</label><strong><span class="status-dot ${dot}"></span>${esc(s.name)}</strong><div style="font-size:12px;color:var(--muted);margin-top:6px">Status: ${esc(s.status)} ${s.error?`(${esc(s.error)})`:''}</div></div>`;
+    }).join('');
+  }catch(e){}
+}
+
+async function loadApps(){
+  try{
+    const apps=await api('/applications');
+    $('apps').innerHTML=apps.length?apps.map(x=>`
+      <div class="app">
+        <div>
+          <b>${esc(x.job?.title||x.job_id)}</b>
+          <div class="company">${esc(x.job?.company||'Application')} · ${esc(x.job?.location||'')}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select class="select" style="padding:6px 10px;font-size:12px" onchange="updateAppStatus('${x.id}',this.value)">
+            ${['saved','shortlisted','applying','applied','assessment','interview','offer','rejected'].map(st=>`<option value="${st}" ${x.status===st?'selected':''}>${st.toUpperCase()}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    `).join(''):'<div class="empty"><b>No applications tracked yet.</b><p>Click "Track" on any job card to add it to your pipeline.</p></div>';
+  }catch(e){}
+}
+
+async function loadProfile(){
+  try{
+    const p=await api('/profile');
+    state.profile=p;
+    const c=p.candidate||{};
+    $('candidateDetails').innerHTML=`
+      <p><b style="color:#eee">${esc(c.name)}</b></p>
+      <p>${esc(c.education)}</p>
+      <p>Graduation: ${esc(c.graduation_year)} · CGPA ${esc(c.cgpa)}</p>
+      <p>${esc(c.current_city)}</p>
+      <p style="margin-top:12px;font-size:12px;color:var(--green)">Resume: ${p.resume_loaded?esc(p.resume_file):'Not loaded'}</p>
+    `;
+    $('roles').innerHTML=(p.target_roles||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('');
+    $('skills').innerHTML=(p.skills||[]).slice(0,30).map(x=>`<span class="tag">${esc(x)}</span>`).join('');
+    if(!p.resume_loaded){
+      $('onboardBanner').style.display='flex';
+    }else{
+      $('onboardBanner').style.display='none';
+    }
+  }catch(e){}
+}
+
+async function discover(){
+  toast('Running discovery on live sources…');
+  try{
+    const r=await api('/discovery/run',{method:'POST'});
+    toast(`Discovery complete: ${r.new_jobs??0} new jobs found`);
+    await loadAll();
+  }catch(e){toast(`Discovery failed: ${e.message}`)}
+}
+
+async function trackJob(jobId){
+  try{
+    await api('/applications',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({job_id:jobId,status:'saved'})});
+    toast('Job added to Applications Tracker!');
+    await loadMetrics();
+  }catch(e){toast(e.message)}
+}
+
+async function updateAppStatus(id,status){
+  try{
+    await api(`/applications/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+    toast(`Status updated to ${status}`);
+    await loadMetrics();
+  }catch(e){toast(e.message)}
+}
+
+async function analyzeJD(job){
+  try{
+    toast('Analyzing Job Description with LLM...');
+    const result=await api('/analyze/job',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(job)});
+    $('mBody').textContent=`ANALYSIS SUMMARY:\n${result.summary||'Analysis complete.'}\n\nREQUIRED SKILLS:\n${(result.required_skills||[]).join(', ')}\n\nPREFERRED SKILLS:\n${(result.preferred_skills||[]).join(', ')}\n\nRESPONSIBILITIES:\n${(result.responsibilities||[]).join('\n')}`;
+    toast('JD Analysis complete!');
+  }catch(e){toast(e.message)}
+}
+
+async function generateAnswers(job){
+  try{
+    toast('Generating grounded application answers...');
+    const req={job_id:job.id,job_title:job.title,company:job.company,job_description:job.description,questions:['Why are you interested in this role?','What relevant skills and projects do you bring?']};
+    const result=await api('/applications/questions/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(req)});
+    const text=result.answers.map(a=>`Q: ${a.question}\nA: ${a.answer}\n(Rationale: ${a.rationale})`).join('\n\n');
+    $('mBody').textContent=`GROUNDED APPLICATION ANSWERS:\n\n${text}`;
+    toast('Answers generated successfully!');
+  }catch(e){toast(e.message)}
+}
+
+function viewJob(j){
+  $('mTitle').textContent=j.title||'Opportunity';
+  $('mCompany').textContent=j.company||'Company not listed';
+  $('mBody').textContent=`Location: ${j.location||'Unknown'} · Work Mode: ${j.work_mode||'Unknown'}\nCompensation: ${money(j)}\nSource: ${j.source||'Source'}\n\nDescription:\n${j.description||'No description available.'}\n\nMatch Score: ${Math.round(j.score_total||0)}%\nSkills: ${(j.skills||[]).join(', ')||'Not listed'}`;
+  
+  $('mActions').innerHTML=`
+    <a class="btn primary" href="${esc(j.application_url)}" target="_blank" rel="noopener">Open Application ↗</a>
+    <button class="btn" onclick='analyzeJD(${JSON.stringify(j).replace(/'/g, "&#39;")})'>Analyze JD</button>
+    <button class="btn" onclick='generateAnswers(${JSON.stringify(j).replace(/'/g, "&#39;")})'>Generate Answers</button>
+    <button class="btn" onclick="closeModal()">Close</button>
+  `;
+  $('modal').classList.add('open');
+}
+
 function closeModal(){$('modal').classList.remove('open')}
-function showTab(name,button){['jobsTab','tracker','profile'].forEach(x=>$(x).style.display='none');$(name==='jobs'?'jobsTab':name).style.display=name==='profile'?'grid':'block';document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));button.classList.add('active');if(name==='tracker')loadApps();if(name==='profile')loadProfile()}
-async function loadAll(){await Promise.all([loadJobs(),loadMetrics(),loadProfile()])}
+function openUploadModal(){$('uploadModal').classList.add('open')}
+function closeUploadModal(){$('uploadModal').classList.remove('open')}
+
+async function submitResume(){
+  const fileInput=$('resumeFile');
+  if(!fileInput.files.length){toast('Please select a file to upload.');return}
+  const formData=new FormData();
+  formData.append('file',fileInput.files[0]);
+  try{
+    toast('Parsing resume text...');
+    const r=await api('/resume',{method:'POST',body:formData});
+    toast(r.message||'Resume loaded successfully!');
+    closeUploadModal();
+    await loadAll();
+  }catch(e){toast(e.message)}
+}
+
+async function clearJobsPrompt(){
+  if(confirm('Are you sure you want to clear all stored jobs? This will set stored jobs to 0.')){
+    try{
+      await api('/jobs/clear',{method:'POST'});
+      toast('Jobs cleared. 0 stored jobs.');
+      await loadAll();
+    }catch(e){toast(e.message)}
+  }
+}
+
+function showTab(name,button){
+  ['jobsTab','sources','tracker','profile'].forEach(x=>$(x).style.display='none');
+  $(name==='jobs'?'jobsTab':name).style.display=name==='profile'?'grid':'block';
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  button.classList.add('active');
+  if(name==='sources') loadSourcesHealth();
+  if(name==='tracker') loadApps();
+  if(name==='profile') loadProfile();
+}
+
+function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',3500)}
+async function loadAll(){await Promise.all([loadJobs(),loadMetrics(),loadProfile(),loadSourcesHealth()])}
 loadAll();
 </script>
 </body>

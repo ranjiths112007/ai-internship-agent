@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     google_api_key: str = ""
     openwebninja_api_key: str = ""
+    apify_api_key: str = ""
+    apify_google_jobs_actor: str = "apify/google-jobs-scraper"
+    apify_linkedin_jobs_actor: str = "curious_coder/linkedin-jobs-scraper"
     llm_provider: str = "auto"
 
     discovery_enabled: bool = False

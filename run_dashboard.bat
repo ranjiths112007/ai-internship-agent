@@ -4,7 +4,7 @@ cd /d "%~dp0"
 
 echo.
 echo  AI Internship Agent
- echo ==================
+echo  ==================
 echo.
 
 if not exist ".venv\Scripts\python.exe" (
@@ -26,10 +26,10 @@ if errorlevel 1 (
 )
 
 echo.
-echo Starting the dashboard...
-echo Browser: http://127.0.0.1:8000/dashboard
+echo Starting the agent setup...
+echo Browser: http://127.0.0.1:8000
 echo Press Ctrl+C in this window to stop the agent.
 echo.
-start "" "http://127.0.0.1:8000/dashboard"
+start "" "http://127.0.0.1:8000"
 python -m app.main
 pause

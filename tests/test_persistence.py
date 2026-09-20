@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.db.session import Base
-from app.db.models import JobModel, ApplicationModel
+from app.db.models import JobModel
 from app.models.schemas import ApplicationCreate, ApplicationUpdate
 from app.services.application import create_application, get_application, update_application
 

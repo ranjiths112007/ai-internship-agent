@@ -1,41 +1,65 @@
 {
-  "name": "John Doe",
-  "email": "john@example.com",
-  "phone": "",
-  "location": "India",
-  "degree": "Not detected",
-  "university": "Not detected",
-  "graduation_year": 2027,
-  "cgpa": null,
-  "skills": [
-    "Python",
-    "FastAPI"
-  ],
-  "projects": [],
-  "experience": [],
+  "candidate": {
+    "name": "Ranjith S",
+    "education": "B.Sc. Artificial Intelligence & Machine Learning",
+    "graduation_year": 2027,
+    "cgpa": 8.2,
+    "current_city": "Chennai, India"
+  },
   "target_roles": [
     "AI Engineer Intern",
     "Generative AI Intern",
     "Applied AI Intern",
     "Machine Learning Engineer Intern",
     "AI/ML Engineer Intern",
+    "Software Engineer Intern - AI/ML",
     "LLM Engineer Intern",
     "RAG Engineer Intern",
     "AI Agent Engineer Intern"
   ],
-  "preferred_locations": [
+  "locations": [
     "Bengaluru",
     "Chennai",
     "Coimbatore"
   ],
-  "preferred_work_modes": [
+  "work_modes": [
     "onsite",
     "remote"
   ],
-  "minimum_stipend_inr": 40000,
   "international_remote": true,
-  "resume_filename": "john_resume.txt",
+  "minimum_monthly_stipend_inr": 40000,
+  "preferred_company_types": [
+    "startup",
+    "product",
+    "technology"
+  ],
+  "preferred_perks": [
+    "breakfast",
+    "lunch",
+    "snacks",
+    "meal",
+    "food",
+    "learning",
+    "mentor",
+    "conversion"
+  ],
+  "skills": [
+    "Python",
+    "FastAPI",
+    "RAG",
+    "pgvector",
+    "LLMs",
+    "PyTorch",
+    "Docker"
+  ],
+  "strong_evidence": [
+    "Built an evidence-first AI business analysis system with RAG, pgvector, Gemini, FastAPI, Next.js, Docker, SQL safety, and prompt-injection defenses.",
+    "Built a tool-using Telegram/Gmail AI agent with OpenAI API, Gmail API, OAuth 2.0, memory, and human confirmation for sends.",
+    "Built an invoice document-intelligence pipeline using OpenCV, Tesseract OCR, FastAPI, SQLAlchemy, validation, and confidence scoring.",
+    "Built a donor matching platform using rules plus RandomForest ranking with explainable outputs and Flask.",
+    "Completed data analytics internships involving forecasting, clustering, and data cleaning."
+  ],
+  "resume_file": "john_resume.txt",
   "resume_loaded": true,
-  "resume_text": "John Doe\nEmail: john@example.com\nPython FastAPI ML Intern 2027",
-  "resume_updated_at": "2026-09-16T04:38:44.741322+00:00"
+  "resume_text_length": 295
 }

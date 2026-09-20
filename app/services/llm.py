@@ -4,7 +4,6 @@ import json
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Any, Optional
 
 import httpx
 
@@ -97,7 +96,7 @@ class DeterministicFallbackProvider(LLMProvider):
             q_lower = q.lower()
             if "why" in q_lower and ("join" in q_lower or "company" in q_lower or "fit" in q_lower):
                 ans = (
-                    f"I am eager to join {company} as a {job_title}. "
+                    f"I am {cand_name}, eager to join {company} as a {job_title}. "
                     f"Currently pursuing my {degree} (Graduating {grad_year}, CGPA {cgpa}), "
                     f"I have extensive hands-on experience building production AI systems including RAG pipelines, pgvector semantic search, and FastAPI backends. "
                     f"My background aligns directly with {company}'s tech stack and vision."
@@ -105,11 +104,14 @@ class DeterministicFallbackProvider(LLMProvider):
                 rat = "Grounded in degree, CGPA, and RAG/FastAPI technical background."
                 req_input = False
             elif "project" in q_lower or "llm" in q_lower or "ai" in q_lower or "rag" in q_lower:
-                ans = (
-                    f"One of my key projects is an evidence-first AI business analysis system. "
-                    f"I built it using RAG, pgvector vector embeddings, Gemini, FastAPI, Next.js, and Docker. "
-                    f"Additionally, I built a tool-using Telegram/Gmail AI agent featuring OpenAI API tool calling, memory, and OAuth 2.0 human-in-the-loop confirmation."
-                )
+                project_lines = [line for line in (rag_evidence, agent_evidence) if line]
+                if project_lines:
+                    ans = "Two projects best demonstrate this: " + " ".join(project_lines)
+                else:
+                    ans = (
+                        f"I have hands-on experience building production AI systems relevant to {job_title}, "
+                        f"including RAG pipelines and tool-using AI agents."
+                    )
                 rat = "Grounded in candidate strong project evidence 1 & 2."
                 req_input = False
             elif "stipend" in q_lower or "salary" in q_lower or "expectation" in q_lower:

@@ -5,13 +5,12 @@ import re
 from pathlib import Path
 
 from app.models.schemas import Job, ScoreBreakdown
-from app.services.resume import get_profile_dict
 
 PROFILE_PATH = Path(__file__).resolve().parents[2] / "config" / "candidate_profile.json"
 
 
 def load_profile() -> dict:
-    return get_profile_dict()
+    return json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
 
 
 def _norm(value: str) -> str:
@@ -21,15 +20,11 @@ def _norm(value: str) -> str:
 def _contains(text: str, term: str) -> bool:
     text = _norm(text)
     term = _norm(term)
-    if term in text:
-        return True
-    if len(term) > 3 and term.endswith("s") and term[:-1] in text:
-        return True
-    return False
+    return term in text
 
 
 def score_job(job: Job) -> ScoreBreakdown:
-    profile = get_profile_dict()
+    profile = load_profile()
     title_text = _norm(job.title)
     all_text = _norm(" ".join([job.title, job.description, *job.skills, job.location]))
 
@@ -42,36 +37,37 @@ def score_job(job: Job) -> ScoreBreakdown:
 
     seniority_penalty = 0.0
     if is_senior and not is_intern:
-        seniority_penalty = 50.0
+        seniority_penalty = 40.0
         flags.append("Role requires senior-level (3+ years) experience; intern candidate penalty applied.")
 
-    # 2. Strict AI/ML Relevance Gate
-    ai_keywords = [
-        "ai", "ml", "machine learning", "deep learning", "artificial intelligence",
-        "genai", "generative ai", "llm", "rag", "embeddings", "transformer",
-        "nlp", "computer vision", "opencv", "pytorch", "tensorflow", "ai agent"
-    ]
-    has_ai_signal = any(_contains(all_text, kw) for kw in ai_keywords)
+    # 2. Role Relevance
+    target_roles = profile.get("target_roles", [])
+    exact_role_hit = any(_contains(title_text, role) for role in target_roles)
 
-    target_roles = [r.lower() for r in profile.get("target_roles", [])]
-    exact_role_hit = any(role in title_text for role in target_roles) or any(_contains(title_text, kw) for kw in ["ai engineer", "generative ai", "llm engineer", "ml engineer", "rag engineer"])
+    role_keywords = [
+        "ai engineer", "genai", "generative ai", "applied ai", "machine learning",
+        "ml engineer", "ai/ml", "llm", "rag", "ai agent", "artificial intelligence",
+        "software engineer", "backend engineer"
+    ]
+    role_hits = sum(1 for keyword in role_keywords if _contains(title_text, keyword))
 
     if exact_role_hit:
         role_relevance = 100.0
         reasons.append("Exact match with target AI/ML engineering role titles.")
-    elif has_ai_signal:
-        role_relevance = 75.0
-        reasons.append("Title or description strongly aligns with AI/ML engineering topics.")
+    elif role_hits > 0:
+        role_relevance = min(100.0, 50.0 + role_hits * 15.0)
+        reasons.append("Title strongly aligns with target AI/ML keywords.")
     else:
-        role_relevance = 10.0
-        flags.append("Role lacks AI/ML relevance; penalized by AI Relevance Gate.")
+        role_relevance = 25.0
+        flags.append("Title does not closely match primary AI/ML target roles.")
 
     role_relevance = max(0.0, role_relevance - seniority_penalty)
 
-    # 3. Skill Overlap & Resume Evidence Match
+    # 3. Skill Overlap & Project Evidence Match
     profile_skills = profile.get("skills", [])
     matched_skills = [skill for skill in profile_skills if _contains(all_text, skill)]
 
+    # Project evidence alignment
     evidence_hits = 0
     if _contains(all_text, "rag") or _contains(all_text, "pgvector") or _contains(all_text, "embeddings"):
         evidence_hits += 1
@@ -83,7 +79,7 @@ def score_job(job: Job) -> ScoreBreakdown:
         evidence_hits += 1
         reasons.append("Matches candidate evidence in OpenCV / OCR document pipelines.")
 
-    skill_match = min(100.0, (len(matched_skills) / 4.0) * 60.0 + evidence_hits * 20.0)
+    skill_match = min(100.0, (len(matched_skills) / 4.0) * 60.0 + evidence_hits * 15.0)
 
     if matched_skills:
         reasons.append(f"Matches {len(matched_skills)} candidate skills: {', '.join(matched_skills[:8])}.")
@@ -100,10 +96,10 @@ def score_job(job: Job) -> ScoreBreakdown:
 
     if location_hit:
         location_match = 100.0
-        reasons.append("Location matches target Indian cities (Chennai, Bengaluru, Coimbatore).")
+        reasons.append("Location matches a target Indian city (Chennai, Bengaluru, Coimbatore).")
     elif intl_remote and ("worldwide" in location_text or "global" in location_text or "unrestricted" in location_text or "india" in location_text or job.location_category == "international_remote"):
         location_match = 100.0
-        reasons.append("Eligible for International Remote lane.")
+        reasons.append("Eligible for the International Remote lane.")
     elif is_remote:
         location_match = 75.0
         reasons.append("Remote position available.")
@@ -122,10 +118,10 @@ def score_job(job: Job) -> ScoreBreakdown:
         flags.append("Compensation undisclosed; manual verification recommended.")
     elif stipend >= minimum:
         compensation = 100.0
-        reasons.append(f"Stipend (INR {stipend:,}/month) meets target.")
+        reasons.append(f"Stipend (INR {stipend:,}/month) meets or exceeds the INR {minimum:,}/month target.")
     else:
         compensation = max(20.0, (stipend / minimum) * 100.0)
-        flags.append(f"Stipend (INR {stipend:,}/month) is below target.")
+        flags.append(f"Stipend (INR {stipend:,}/month) is below the INR {minimum:,}/month target.")
 
     # 6. Work Mode Match
     preferred_modes = [_norm(x) for x in profile.get("work_modes", ["onsite", "remote"])]
@@ -144,19 +140,16 @@ def score_job(job: Job) -> ScoreBreakdown:
     if signal_hits >= 2:
         reasons.append("Company exhibits positive startup/product engineering signals.")
 
-    # Final Total Weight Calculation with AI Gate Capping
+    # Final Total Weight Calculation
     total = round(
-        role_relevance * 0.35
-        + skill_match * 0.25
-        + location_match * 0.15
-        + compensation * 0.10
+        role_relevance * 0.25
+        + skill_match * 0.30
+        + location_match * 0.10
+        + compensation * 0.15
         + work_mode * 0.05
-        + company_signal * 0.10,
+        + company_signal * 0.15,
         2,
     )
-    if not has_ai_signal and not exact_role_hit:
-        total = min(total, 35.0)
-
     total = min(100.0, max(0.0, total))
 
     return ScoreBreakdown(

@@ -21,7 +21,7 @@ def test_api_profile():
     assert response.status_code == 200
     data = response.json()
     assert "candidate" in data
-    assert bool(data["candidate"]["name"])
+    assert data["candidate"]["name"] == "Ranjith S"
 
 
 def test_api_score():

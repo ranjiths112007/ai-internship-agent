@@ -11,6 +11,23 @@ from app.sources.base import JobSource
 logger = logging.getLogger(__name__)
 
 
+def _first_present(item: ET.Element, *tags: str) -> ET.Element | None:
+    """Return the first matching child element, checked by identity (`is not None`).
+
+    `ET.Element.__bool__` is based on child count, not on whether the element
+    has text -- a plain leaf element like `<title>Some text</title>` is falsy
+    because it has zero *child elements*. Chaining `item.find(a) or item.find(b)`
+    therefore silently discards a perfectly valid match whenever it has no
+    children (i.e. for almost every RSS/Atom leaf field), making the source
+    treat present data as missing. This helper checks presence explicitly.
+    """
+    for tag in tags:
+        element = item.find(tag)
+        if element is not None:
+            return element
+    return None
+
+
 class RSSJobSource(JobSource):
     """Read a public RSS/Atom feed without inventing missing job data."""
 
@@ -43,11 +60,11 @@ class RSSJobSource(JobSource):
         jobs: list[Job] = []
 
         for item in items:
-            title_el = item.find("title") or item.find(f"{atom}title")
-            link_el = item.find("link") or item.find(f"{atom}link")
-            desc_el = item.find("description") or item.find(f"{atom}content") or item.find(f"{atom}summary")
-            pub_el = item.find("pubDate") or item.find(f"{atom}published") or item.find(f"{atom}updated")
-            id_el = item.find("guid") or item.find(f"{atom}id")
+            title_el = _first_present(item, "title", f"{atom}title")
+            link_el = _first_present(item, "link", f"{atom}link")
+            desc_el = _first_present(item, "description", f"{atom}content", f"{atom}summary")
+            pub_el = _first_present(item, "pubDate", f"{atom}published", f"{atom}updated")
+            id_el = _first_present(item, "guid", f"{atom}id")
 
             raw_title = self._text(title_el)
             link = self._text(link_el)

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 import uuid
 
@@ -66,32 +65,3 @@ class ApplicationModel(Base):
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     job = relationship("JobModel", back_populates="applications")
-
-
-class CandidateProfileModel(Base):
-    __tablename__ = "candidate_profile"
-
-    id = Column(String(50), primary_key=True, default="default")
-    name = Column(String(255), default="")
-    email = Column(String(255), default="")
-    phone = Column(String(50), default="")
-    location = Column(String(255), default="")
-    education_json = Column(Text, default="[]")
-    degree = Column(String(255), default="")
-    university = Column(String(255), default="")
-    graduation_year = Column(Integer, nullable=True)
-    cgpa = Column(Float, nullable=True)
-    skills_json = Column(Text, default="[]")
-    projects_json = Column(Text, default="[]")
-    experience_json = Column(Text, default="[]")
-    certifications_json = Column(Text, default="[]")
-    target_roles_json = Column(Text, default="[]")
-    preferred_locations_json = Column(Text, default="[]")
-    preferred_work_modes_json = Column(Text, default="[]")
-    minimum_stipend_monthly_inr = Column(Integer, default=40000)
-    international_remote = Column(Integer, default=1)
-    resume_filename = Column(String(255), default="")
-    resume_text = Column(Text, default="")
-    resume_updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
-    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
-
